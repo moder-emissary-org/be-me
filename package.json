@@ -2,11 +2,12 @@
   "name": "be-me",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "index.ts",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/index.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "jest"
@@ -16,6 +17,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.17.0",
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/mongoose": "^5.11.97",
@@ -24,10 +26,11 @@
     "nodemon": "^3.1.11",
     "prettier": "^3.7.4",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.1.0"
