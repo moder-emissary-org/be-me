@@ -1,0 +1,44 @@
+name: Backend CI (Docker Baseline)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Build Docker image
+      - name: Build backend Docker image
+        run: |
+          docker build -t backend-ci .
+
+      # 3. Boot container (startup validation)
+      - name: Run backend container
+        run: |
+          docker run -d \
+            -e PORT=8000 \
+            -e NODE_ENV=production \
+            -e MONGODB_URI=mongodb://invalid-but-present \
+            -p 8000:8000 \
+            --name backend_test \
+            backend-ci
+
+      # 4. Basic liveness check (process did not crash)
+      - name: Verify container is running
+        run: |
+          sleep 5
+          docker ps | grep backend_test
+
+      # 5. Cleanup
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop backend_test
+          docker rm backend_test
