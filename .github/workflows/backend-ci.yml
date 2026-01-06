@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'Readme.md'
+      - 'Readme/**'
+      - 'Contracts/**'
 
 jobs:
   build-and-boot:
