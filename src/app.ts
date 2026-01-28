@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { clerkMiddleware } from "@clerk/express";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 
 const app: express.Application = express();
 
@@ -11,13 +11,15 @@ app.use(
   })
 );
 
-app.use(clerkMiddleware())
+// Apply middleware to all routes
+app.use(clerkMiddleware());
+app.use(requireAuth());
 
 app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ extended: true, limit: "20kb" }));
 app.use(express.static("public"));
 
-import userRoutes  from "@/routes/user.routes.js";
+import userRoutes  from "@/routes/User.routes.js";
 
 app.use("/api", userRoutes);
 
