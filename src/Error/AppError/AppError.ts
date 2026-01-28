@@ -11,3 +11,5 @@ export abstract class AppError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
+
+// This file contains the definition of the AppError abstract class, which serves as a base class for all application-specific errors. It extends the built-in Error class and adds additional properties to capture error context and categorize errors by application layer.
