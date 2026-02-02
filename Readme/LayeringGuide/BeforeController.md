@@ -6,11 +6,11 @@ Below is the **canonical, backend-first MVP sequence** that fits your solo execu
 
 ## Executive answer (one paragraph)
 
-You start writing controllers **only after**:
-(1) your **domain models are locked**,
-(2) your **authorization contract is explicit**,
-(3) your **request–response contracts are defined**, and
-(4) your **service/business logic can be written without Express present**.
+You start writing controllers **only after**: <br>
+(1) your **domain models are locked**, <br>
+(2) your **authorization contract is explicit**, <br>
+(3) your **request–response contracts are defined**, and <br>
+(4) your **service/business logic can be written without Express present**. <br>
 
 Controllers should contain **almost no business logic**; they should adapt HTTP → domain → HTTP. If you feel “logic pressure” while writing a controller, you started too early.
 
