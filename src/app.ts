@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
+import userRoutes  from "@/routes/User.routes.js";
 
 const app: express.Application = express();
 
@@ -15,12 +16,12 @@ app.use(
 app.use(clerkMiddleware());
 app.use(requireAuth());
 
+// Body parsers
 app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ extended: true, limit: "20kb" }));
 app.use(express.static("public"));
 
-import userRoutes  from "@/routes/User.routes.js";
-
+// Routes
 app.use("/api", userRoutes);
 
 export { app };

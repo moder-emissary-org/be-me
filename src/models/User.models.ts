@@ -33,7 +33,6 @@ const UserSchema = new Schema(
       ref: "Apartment",
       required: false, // required only for residents
     },
-
     isActive: {
       type: Boolean,
       default: true,
