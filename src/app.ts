@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
-import userRoutes  from "@/routes/User.routes.js";
+import userRouter  from "@/routes/User/User.routes.js";
 
 const app: express.Application = express();
 
@@ -22,6 +22,11 @@ app.use(express.urlencoded({ extended: true, limit: "20kb" }));
 app.use(express.static("public"));
 
 // Routes
-app.use("/api", userRoutes);
+app.use("/api/users", userRouter);
+// app.use("/api/societies", societyRouter);
+// app.use("/api/apartments", apartmentRouter);
+// app.use("/api/visitors", visitorRouter);
+// app.use("/api/complaints", complaintRouter);
+// app.use("/api/notices", noticeRouter);
 
 export { app };
