@@ -1,20 +1,36 @@
+import { resolveCurrentUser_Service } from "@/Services/User/resolveCurrentUserService.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
-import { clerkClient, getAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 
-export const getUser = asyncHandler( async(req, res) => {
-  // That is how we get the userId only from the seesion object
-  const { userId } = getAuth(req);
+export const getCurrentUser_Controller = asyncHandler( async(req, res) => {
+  const { userId: clerkUserId } = getAuth(req);
 
-  // full user session object
-  const auth = getAuth(req);
+  console.log("Get Current User Controller hit. Clerk User ID from session: ", clerkUserId);
 
-  if (!userId) {
-    return res.status(401).json({ success: false, message: "Unauthorized" })
+  if (!clerkUserId) {
+    return res.status(401).json({ message: "Unauthorized: No userId in session" });
   }
 
-  console.log("Authenticated user ID:", auth);
+  const me = await resolveCurrentUser_Service({clerkUserId});
 
-  // Use Clerk's JS Backend SDK to get the user's User object
-  const userObj = await clerkClient.users.getUser(userId);
-  return res.json(userObj);
+  return res.status(200).json(me);
 });
+
+// console.log("Received request to get current user");
+// // That is how we get the userId only from the seesion object
+// const { userId } = getAuth(req);
+
+// // full user session object
+// const auth = getAuth(req);
+
+// if (!userId) {
+//   return res.status(401).json({ success: false, message: "Unauthorized" })
+// }
+
+// console.log("Authenticated user ID:", auth);
+
+// // Use Clerk's JS Backend SDK to get the user's User object
+// const userObj = await clerkClient.users.getUser(userId);
+// return res
+//   .status(200)
+//   .json({ success: true, user: userObj });
