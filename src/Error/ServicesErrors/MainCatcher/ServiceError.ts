@@ -10,7 +10,8 @@ export class ServiceError extends AppError {
       | 'ROLE_CONSTRAINT_VIOLATION'
       | 'SOCIETY_NOT_FOUND'
       | 'APARTMENT_SCOPE_INVALID'
-      | 'OPERATION_NOT_ALLOWED',
+      | 'OPERATION_NOT_ALLOWED'
+      | 'USER_NOT_FOUND',
     message: string,
     context?: Record<string, unknown>,
   ) {
