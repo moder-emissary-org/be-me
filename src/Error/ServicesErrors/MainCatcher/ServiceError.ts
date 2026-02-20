@@ -11,7 +11,9 @@ export class ServiceError extends AppError {
       | 'SOCIETY_NOT_FOUND'
       | 'APARTMENT_SCOPE_INVALID'
       | 'OPERATION_NOT_ALLOWED'
-      | 'USER_NOT_FOUND',
+      | 'USER_NOT_FOUND'
+      | 'SOCIETY_CREATION_FAILED'
+      | 'SOCIETY_ALREADY_BOOTSTRAPPED',
     message: string,
     context?: Record<string, unknown>,
   ) {
