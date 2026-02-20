@@ -8,9 +8,13 @@ export type RegisterUserInput = {
   apartmentId?: string;
   email: string;
   fullName: string;
+  isActive: boolean;
 };
 
 export async function RegisterUser_Service(input: RegisterUserInput) {
+
+  console.log("RegisterUser_Service called with input:", input);
+
   const missingFields: string[] = [];
 
   if (!input.clerkUserId) missingFields.push('clerkUserId');
@@ -18,8 +22,7 @@ export async function RegisterUser_Service(input: RegisterUserInput) {
   if (!input.role) missingFields.push('role');
   if (!input.email) missingFields.push('email');
   if (!input.fullName) missingFields.push('fullName');
-  // apartmentId is required only for residents
-  if (input.role === 'resident' && !input.apartmentId) missingFields.push('apartmentId');
+  if (input.role === 'resident' && !input.apartmentId) missingFields.push('apartmentId'); // apartmentId is required only for residents
 
   if (missingFields.length > 0) {
     throw new ServiceError(
@@ -29,17 +32,29 @@ export async function RegisterUser_Service(input: RegisterUserInput) {
     );
   };
 
+  // Role check 
+  /** 
+  if (input.role === 'admin') {
+    throw new ServiceError(
+      'ROLE_CONSTRAINT_VIOLATION',
+      'Only Admins can create the other users',
+      {missingFields}
+    ) 
+  }
+  */
+
   // test of saving a user in db using repository layer.
   const user = await SaveUser_Repository({
     clerkUserId: input.clerkUserId,
+    fullName: input.fullName,
+    email: input.email,
     role: input.role,
     societyId: input.societyId,
     apartmentId: input.apartmentId,
-    email: input.email,
-    fullName: input.fullName,
+    isActive: input.isActive,
   });
 
-  console.log("register user service hit:", user);
+  console.log("register user service end with:", user);
 
   // RETURN DOMAIN RESULT
   return user;

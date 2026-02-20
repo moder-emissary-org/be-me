@@ -5,7 +5,7 @@ import { DB_NAME } from "../constants.js";
  * -> Establishes a connection to the MongoDB database using Mongoose.
  * -> This function retrieves the MongoDB URI from environment variables 
  * and attempts to connect to the specified database.
- * -> If the connection fails due to a missing URI, it logs an error
+ * -> If the connection fails due to a missing URI or connection error, it logs an error
  * message and exits the process.
  */
 
