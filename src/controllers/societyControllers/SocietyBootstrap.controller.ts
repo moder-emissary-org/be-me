@@ -1,6 +1,6 @@
 import { ControllerError } from "@/Error/ControllerErrors/MainCatcher/ControllerError.js";
 import { ClerkIdentity_Services } from "@/Services/Identity/ClerkIdentity.services.js";
-import { bootstrapSocietyService } from "@/Services/System/BootstrapSociety.service.js";
+import { bootstrapSociety_Service } from "@/Services/Society/BootstrapSociety.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
@@ -30,7 +30,7 @@ export const societyBootstrap_Controller = asyncHandler(async (req, res) => {
     )
   }
 
-  const society = await bootstrapSocietyService({
+  const society = await bootstrapSociety_Service({
     name, 
     address,
     clerkUserId, 
