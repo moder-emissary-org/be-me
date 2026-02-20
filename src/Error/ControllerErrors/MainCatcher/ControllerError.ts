@@ -1,6 +1,6 @@
 import { AppError } from "@/Error/AppError/AppError.js";
 
-export class HttpError extends AppError {
+export class ControllerError extends AppError {
   readonly layer = 'controller';
 
   constructor(
