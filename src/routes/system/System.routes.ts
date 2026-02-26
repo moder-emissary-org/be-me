@@ -1,8 +1,16 @@
-import { systemBootstrap_Controller } from "@/controllers/SystemController/SystemBootstrap.controller.js";
+import { systemBootstrap_Controllers } from "@/controllers/SystemController/SystemBootstrap.controller.js";
+import { clerkMiddleware } from "@clerk/express";
 import { Router } from "express";
 
 const router: Router = Router(); 
 
-router.post('/bootstrap', systemBootstrap_Controller); 
+// Test route to verify router is working
+router.get("/test", (req, res) => {
+  res.json({ message: "System router is working!" });
+});
 
-export default router; 
+router.use(clerkMiddleware()); 
+
+router.post('/bootstrap', systemBootstrap_Controllers); 
+
+export { router as systemRouter };
