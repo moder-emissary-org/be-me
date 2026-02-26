@@ -1,10 +1,10 @@
 import { ControllerError } from "@/Error/ControllerErrors/MainCatcher/ControllerError.js";
-import { ClerkIdentity_Services } from "@/Services/Identity/ClerkIdentity.services.js";
+import { ClerkIdentityProvider_Service } from "@/Services/Identity/IdentityProvider.service.js";
 import { bootstrapSociety_Service } from "@/Services/Society/BootstrapSociety.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
-export const societyBootstrap_Controller = asyncHandler(async (req, res) => {
+export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
 
   console.log("SocietyBootstrapController called with body:", req.body);
 
@@ -17,7 +17,7 @@ export const societyBootstrap_Controller = asyncHandler(async (req, res) => {
     )
   }
 
-  const { email, fullName } = await ClerkIdentity_Services.getProfile(clerkUserId);
+  const { email, fullName } = await ClerkIdentityProvider_Service.getProfile(clerkUserId);
   
   console.log("Authenticated clerkUserId from society Bootstrap controller: ", clerkUserId);
 
