@@ -20,6 +20,6 @@ router.get("/health", (_req, res) => {
   });
 });
 
-export default router;
+export { router as healthRouter };
 
 // Read: { IMP } -- Health check endpoint explained on gpt. 

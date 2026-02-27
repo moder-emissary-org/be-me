@@ -26,6 +26,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
   try {
     session.startTransaction();
 
+    /*
     const existingSocietyCount = await societyRepository_Repository.count({ session });
 
     if (existingSocietyCount > 0) {
@@ -35,6 +36,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
         { existingSocietyCount }
       )
     }
+    */
 
     const society = await societyRepository_Repository.create(
       {

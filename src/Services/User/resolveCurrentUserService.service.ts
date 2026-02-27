@@ -3,6 +3,8 @@ import { FindApartment_repository } from "@/Repository/ApartmentRepository/FindA
 import { FindSociety_repository } from "@/Repository/SocietyRepository/FindSociety.repository.js";
 import { findUserByID_Repository } from "@/Repository/userRepository/FindUser.repository.js";
 
+// This service is responsible for resolving the current user's details, including their associated society and apartment information, based on their Clerk user ID. It is used in the GetCurrentUser controller to provide a comprehensive user profile for the frontend application.
+
 export const resolveCurrentUser_Service = async ({
   clerkUserId,
 }: {
@@ -40,7 +42,6 @@ export const resolveCurrentUser_Service = async ({
       id: user._id.toString(),
       clerkUserId: user.clerkUserId,
       fullName: user.fullName ?? null,
-      role: user.role,
       isActive: user.isActive,
     },
     authority: {

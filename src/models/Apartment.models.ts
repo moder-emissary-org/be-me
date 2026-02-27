@@ -5,7 +5,7 @@ const ApartmentSchema = new Schema(
     apartmentCode: {
       type: String,
       required: true,
-      unique: true
+      unique: false, // Not unique across the entire system, but should be unique within a society
     },
     societyId: {
       type: mongoose.Types.ObjectId,
@@ -15,8 +15,6 @@ const ApartmentSchema = new Schema(
     towerLabel: {
       type: String,
       required: false,
-      // Examples: "Tower A", "Block 3"
-      // Display-only in MVP
     },
   },
   { timestamps: true }
