@@ -1,5 +1,5 @@
 import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js";
-import { FindApartment_repository } from "@/Repository/ApartmentRepository/FindApartment.repository.js";
+import { FindApartment_Repository } from "@/Repository/ApartmentRepository/FindApartment.repository.js";
 import { FindSociety_repository } from "@/Repository/SocietyRepository/FindSociety.repository.js";
 import { findUserByID_Repository } from "@/Repository/userRepository/FindUser.repository.js";
 
@@ -34,7 +34,7 @@ export const resolveCurrentUser_Service = async ({
   }
 
   const apartment = user.apartmentId
-    ? await FindApartment_repository.findById(user.apartmentId)
+    ? await FindApartment_Repository.findById(user.apartmentId)
     : null;
 
   return {
