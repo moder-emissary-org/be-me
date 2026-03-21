@@ -1,5 +1,5 @@
 # ---- Base runtime (deterministic Node version) ----
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Set working directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 # Copy only package files first (cache-friendly)
 COPY package.json pnpm-lock.yaml ./
 
-# Enable pnpm (Node 20 ships with corepack)
+# Enable pnpm (Node version ships with corepack)
 RUN corepack enable && pnpm install --frozen-lockfile
 
 # ---- Build layer ----
@@ -19,7 +19,7 @@ COPY . .
 RUN pnpm run build
 
 # ---- Runtime stage ----
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
 
