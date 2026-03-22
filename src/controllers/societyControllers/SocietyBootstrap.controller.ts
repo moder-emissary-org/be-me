@@ -1,15 +1,11 @@
-import { ControllerError } from "@/Error/ControllerErrors/MainCatcher/ControllerError.js";
-import { ClerkIdentityProvider_Service } from "@/Services/Identity/IdentityProvider.service.js";
-import { bootstrapSociety_Service } from "@/Services/Society/BootstrapSociety.service.js";
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
+import { bootstrapSociety_Service } from "@/services/Society/BootstrapSociety.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
 export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
-
-  console.log("SocietyBootstrapController called with body:", req.body);
-
   const { userId: clerkUserId } = getAuth(req);
-
   if (!clerkUserId) {
     throw new ControllerError(
       "UNAUTHORIZED",
@@ -18,11 +14,7 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
   }
 
   const { email, fullName } = await ClerkIdentityProvider_Service.getProfile(clerkUserId);
-  
-  console.log("Authenticated clerkUserId from society Bootstrap controller: ", clerkUserId);
-
   const { name, address } = req.body;
-
   if (!name || !address) {
     throw new ControllerError(
       "BAD_REQUEST",
@@ -31,13 +23,12 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
   }
 
   const society = await bootstrapSociety_Service({
-    name, 
+    name,
     address,
-    clerkUserId, 
-    email, 
+    clerkUserId,
+    email,
     fullName
-  }); 
-
+  });
   if (!society) {
     throw new ControllerError(
       "FORBIDDEN",
@@ -45,9 +36,11 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
     )
   }
 
-  res.status(201).json({
-    success: true,
-    message: "Society bootstrapped successfully",
-    data: society
-  })
+  res
+    .status(201)
+    .json({
+      success: true,
+      message: "Society bootstrapped successfully",
+      data: society
+    })
 })
