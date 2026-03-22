@@ -1,10 +1,5 @@
-import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import { clerkClient } from "@clerk/express";
-
-// export const identityProvider_Service = {
-//   createUser: ;
-//   deleteUser: ;
-// }
 
 export interface ClerkProfile {
   clerkUserId: string;
@@ -12,7 +7,28 @@ export interface ClerkProfile {
   fullName: string;
 }
 
+export interface InvitationPublicMetadata {
+  societyId: string;
+  role: "resident" | "guard";
+  invitedBy: string;
+  [key: string]: unknown;
+}
+
+// Only For Clerk Related Operations
 export const ClerkIdentityProvider_Service = {
+  async createInvitation(
+    email: string,
+    publicMetadata: InvitationPublicMetadata
+  ): Promise<{ id: string }> {
+    console.log("createInvitation method called with publicMetadata:", publicMetadata);
+    const invitation = await clerkClient.invitations.createInvitation({
+      emailAddress: email,
+      publicMetadata: publicMetadata,
+      redirectUrl: 'http://localhost:3000/'
+    });
+    return { id: invitation.id };
+  },
+
   async getProfile(clerkUserId: string): Promise<ClerkProfile> {
     const user = await clerkClient.users.getUser(clerkUserId);
 
