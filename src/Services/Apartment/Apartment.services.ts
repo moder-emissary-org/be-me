@@ -1,7 +1,7 @@
-import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js"
-import { ApartmentRepository_Repository } from "@/Repository/ApartmentRepository/Apartment.repository.js"
-import { FindApartment_Repository } from "@/Repository/ApartmentRepository/FindApartment.repository.js"
-import { findUserByID_Repository } from "@/Repository/userRepository/FindUser.repository.js"
+import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js"
+import { ApartmentRepository_Repository } from "@/repository/ApartmentRepository/Apartment.repository.js"
+import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindApartment.repository.js"
+import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js"
 import { isMongoDuplicateError } from "@/utils/MongoErrors.utils.js"
 import type { Types } from "mongoose"
 
@@ -19,10 +19,7 @@ interface CreateApartmentOutput {
 }
 
 export const createApartment_Service = async (input: CreateApartmentInput): Promise<CreateApartmentOutput> => {
-  console.log("Create apartment service called with input: ", input);
-
   const adminUser = await findUserByID_Repository.findByClerkUserId(input.clerkUserId);
-
   if (!adminUser) {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
@@ -43,7 +40,6 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
 
   const existingApartment = 
     await FindApartment_Repository.findBySocietyIdAndApartmentCode(adminSocietyId, input.apartmentCode);
-
   if (existingApartment) {
     throw new ServiceError(
       "DUPLICATE_APARTMENT_FOUND",
@@ -51,13 +47,8 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
       { statusCode: 409, societyId: adminSocietyId, apartmentCode: input.apartmentCode }
     );
   }
-
-  console.log("apartmentRepsitory hit with adminSocietyId: ", adminSocietyId);
  
   const normalizedApartmentCode = input.apartmentCode.trim().toUpperCase();
-
-  console.log("Normalized apartment code: ", normalizedApartmentCode);
-
   try {
     const apartment = await ApartmentRepository_Repository.create({
       apartmentCode: normalizedApartmentCode,
@@ -65,7 +56,6 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
       societyId: adminSocietyId,
     });
 
-    console.log("Apartment created successfully from service:", apartment);
     return {
       apartmentCode: apartment.apartmentCode,
       towerLabel: apartment.towerLabel ? apartment.towerLabel : null,
@@ -89,22 +79,27 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
   }
 };
 
+//un-implemented
 export const BulkCreateApartments_Service = async () => {
   console.log("Bulk create apartments service called")
 }
 
+//un-implemented
 export const ListApartments_Service = async () => {
   console.log("List apartments service called")
 }
 
+//un-implemented
 export const GetApartmentDetails_Service = async () => {
   console.log("Get apartment details service called")
 }
 
+//un-implemented
 export const UpdateApartment_Service = async () => {
   console.log("Update apartment service called")
 }
 
+//un-implemented
 export const DeleteApartment_Service = async () => {
   console.log("Delete apartment service called")
 } 
