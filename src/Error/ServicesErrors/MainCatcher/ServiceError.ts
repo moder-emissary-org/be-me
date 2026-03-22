@@ -1,4 +1,4 @@
-import { AppError } from "@/Error/AppError/AppError.js";
+import { AppError } from "@/error/AppError/AppError.js";
 
 export class ServiceError extends AppError {
   readonly layer = 'service';
@@ -12,8 +12,13 @@ export class ServiceError extends AppError {
       | 'APARTMENT_SCOPE_INVALID'
       | 'OPERATION_NOT_ALLOWED'
       | 'USER_NOT_FOUND'
+      | 'DUPLICATE_APARTMENT_FOUND'
       | 'SOCIETY_CREATION_FAILED'
-      | 'SOCIETY_ALREADY_BOOTSTRAPPED',
+      | 'OPERATION_FAILED'
+      | 'SOCIETY_ALREADY_BOOTSTRAPPED'
+      | 'ADMIN_NOT_FOUND'
+      | 'INVITATION_FAILED'
+      | 'APARTMENT_NOT_FOUND',
     message: string,
     context?: Record<string, unknown>,
   ) {
