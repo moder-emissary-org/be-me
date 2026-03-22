@@ -1,14 +1,14 @@
-import { ControllerError } from "@/Error/ControllerErrors/MainCatcher/ControllerError.js";
-import { createApartment_Service } from "@/Services/Apartment/Apartment.services.js";
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { createApartment_Service } from "@/services/Apartment/Apartment.services.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
 export const CreateApartment_Controllers = asyncHandler(async (req, res) => {
-  console.log("Apartment controllers hit!");
-  const { userId: clerkUserId } = getAuth(req); // Extract the authenticated user's ID from Clerk's middleware
+  const { userId: clerkUserId } = getAuth(req); 
   if (!clerkUserId) {
     return res.status(401).json({ message: "Unauthorized: No authenticated user found." });
   }
+
   const { apartmentCode, towerLabel } = req.body;
   if (!apartmentCode || !towerLabel) {
     throw new ControllerError(
@@ -17,6 +17,7 @@ export const CreateApartment_Controllers = asyncHandler(async (req, res) => {
       { statusCode: 400 }
     )
   }
+
   const apartment = await createApartment_Service({
     apartmentCode,
     towerLabel,
@@ -29,7 +30,10 @@ export const CreateApartment_Controllers = asyncHandler(async (req, res) => {
       { statusCode: 500 }
     )
   }
-  // Initialize any necessary services or configurations here
+
+  return res
+    .status(201)
+    .json({ message: "Apartment created successfully.", apartment }); 
 }); 
 
 export const GetApartment_Controllers = asyncHandler(async (req, res) => {
