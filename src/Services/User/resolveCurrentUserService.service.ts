@@ -1,7 +1,7 @@
-import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js";
-import { FindApartment_Repository } from "@/Repository/ApartmentRepository/FindApartment.repository.js";
-import { FindSociety_repository } from "@/Repository/SocietyRepository/FindSociety.repository.js";
-import { findUserByID_Repository } from "@/Repository/userRepository/FindUser.repository.js";
+import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindApartment.repository.js";
+import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
+import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js";
 
 // This service is responsible for resolving the current user's details, including their associated society and apartment information, based on their Clerk user ID. It is used in the GetCurrentUser controller to provide a comprehensive user profile for the frontend application.
 
@@ -10,11 +10,7 @@ export const resolveCurrentUser_Service = async ({
 }: {
   clerkUserId: string;
 }) => {
-
-  const user = await findUserByID_Repository.findByClerkUserId(clerkUserId);
-
-  console.log("Resolve Current User Service hit. Found user: ", user);  
-  
+  const user = await findUserByID_Repository.findByClerkUserId(clerkUserId);  
   if (!user || !user.isActive) {
     throw new ServiceError(
       "USER_NOT_FOUND",
@@ -24,7 +20,6 @@ export const resolveCurrentUser_Service = async ({
   }
 
   const society = await FindSociety_repository.findById(user.societyId);
-
   if (!society) {
     throw new ServiceError(
       "SOCIETY_NOT_FOUND",
