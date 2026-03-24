@@ -21,11 +21,7 @@ export interface InviteUserInput {
 export const inviteUser_Service = async (
   input: InviteUserInput
 ): Promise<{ success: true; message: string }> => {
-  console.log("inviteUser_Service called with input:", input);
   const { email, role, invitedBy } = input;
-
-  console.log("invitation public metadata:", { email, role, invitedBy });
-
   if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
@@ -51,8 +47,6 @@ export const inviteUser_Service = async (
     );
   }
 
-  console.log("adminUser:", adminUser);
-
   if (adminUser.role !== "admin") {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
@@ -77,7 +71,6 @@ export const inviteUser_Service = async (
       { clerkUserId: invitedBy },
     );
   }
-  console.log("admin societyId:", societyId);
 
   const metadata: InvitationPublicMetadata = {
     societyId: String(societyId),
