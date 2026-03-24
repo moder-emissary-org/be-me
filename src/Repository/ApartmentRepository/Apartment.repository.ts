@@ -14,7 +14,6 @@ export const ApartmentRepository_Repository = {
     },
     options?: CreateOptions
   ): Promise<any> => {
-    console.log("Creating apartment with data:", data);
     const createOptions = options?.session
       ? { session: options.session }
       : undefined;

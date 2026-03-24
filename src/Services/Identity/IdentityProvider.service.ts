@@ -20,7 +20,6 @@ export const ClerkIdentityProvider_Service = {
     email: string,
     publicMetadata: InvitationPublicMetadata
   ): Promise<{ id: string }> {
-    console.log("createInvitation method called with publicMetadata:", publicMetadata);
     const invitation = await clerkClient.invitations.createInvitation({
       emailAddress: email,
       publicMetadata: publicMetadata,
@@ -31,7 +30,6 @@ export const ClerkIdentityProvider_Service = {
 
   async getProfile(clerkUserId: string): Promise<ClerkProfile> {
     const user = await clerkClient.users.getUser(clerkUserId);
-
     if (!user) {
       throw new ServiceError(
         "SERVICE_INPUT_INVALID",
