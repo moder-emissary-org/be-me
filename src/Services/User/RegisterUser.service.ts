@@ -1,5 +1,5 @@
-import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js";
-import { saveUser_Repository } from "@/Repository/userRepository/SaveUser.repository.js";
+import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { saveUser_Repository } from "@/repository/UserRepository/SaveUser.repository.js";
 import type { Types } from "mongoose";
 
 export type RegisterUserInput = {
@@ -13,9 +13,6 @@ export type RegisterUserInput = {
 };
  
 export async function bootstrapUser_Service(input: RegisterUserInput) {
-
-  console.log("bootstrapUser_Service called with input:", input);
-
   const missingFields: string[] = [];
 
   if (!input.clerkUserId) missingFields.push('clerkUserId');
@@ -44,9 +41,5 @@ export async function bootstrapUser_Service(input: RegisterUserInput) {
     apartmentId: typeof input.apartmentId === "undefined" ? null : input.apartmentId,
     isActive: input.isActive,
   });
-
-  console.log("register user service end with:", user);
-
-  // RETURN DOMAIN RESULT
   return user;
 }

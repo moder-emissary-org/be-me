@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { clerkMiddleware } from "@clerk/express";
-import { createUser_Controller, getCurrentUser_Controllers } from "@/controllers/UserControllers/User.controller.js";
+import {
+  createUser_Controller,
+  getCurrentUser_Controllers,
+  inviteUser_Controller,
+  assignUserToApartment_Controller,
+} from "@/controllers/UserControllers/User.controller.js";
 
 const router: Router = Router();
 router.get("/test", (req, res) => {
@@ -15,6 +20,12 @@ router.get("/me", getCurrentUser_Controllers);
  // POST /api/users/bootstrap
  router.post("/bootstrap", bootstrapUser_Controllers);
  */
+
+// (admin) – Clerk invitation
+router.post("/invite", inviteUser_Controller);
+
+// (admin) – membership
+router.post("/:userId/assign-apartment", assignUserToApartment_Controller);
 
 // GET /api/users (admin)
 // router.get("/", listUsersController);

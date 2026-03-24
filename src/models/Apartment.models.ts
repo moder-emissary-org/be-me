@@ -1,6 +1,15 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
-const ApartmentSchema = new Schema(
+
+export interface ApartmentDocument {
+  apartmentCode: string;
+  societyId: Types.ObjectId;
+  towerLabel: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ApartmentSchema = new Schema<ApartmentDocument>(
   {
     apartmentCode: {
       type: String,
@@ -14,10 +23,16 @@ const ApartmentSchema = new Schema(
     },
     towerLabel: {
       type: String,
-      required: false,
+      required: true,
     },
   },
   { timestamps: true }
 );
 
-export const Apartment = mongoose.model("Apartment", ApartmentSchema);
+// This brings the unique constraint to the combination of societyId and apartmentCode, allowing the same apartmentCode to exist in different societies but not duplicate within the same society at DB level.
+ApartmentSchema.index(
+  {societyId: 1, apartmentCode: 1},
+  { unique: true }
+)
+
+export const Apartment = mongoose.model<ApartmentDocument>("Apartment", ApartmentSchema);

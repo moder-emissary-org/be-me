@@ -1,4 +1,6 @@
-import { RegisterUser_Service } from "@/Services/User/RegisterUser.service.js";
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
+import { bootstrapUser_Service } from "@/services/User/RegisterUser.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { clerkClient, getAuth } from "@clerk/express";
 
@@ -7,42 +9,25 @@ import { clerkClient, getAuth } from "@clerk/express";
 // extract email and full name from clerk user object
 // call the RegisterUser service with proper inputs
 
-export const bootstrapUser_Controller = asyncHandler(async (req, res) => {
-  console.log("Bootstrap User Controller Hit!");
-
+export const bootstrapUser_Controllers = asyncHandler(async (req, res) => {
   const { userId: clerkUserId } = getAuth(req);
-  console.log("Authenticated clerkUserId from session:", clerkUserId);
-  
   if (!clerkUserId) {
-    return res.status(401).json({ error: "Unauthorized: No userId in session" });
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to bootstrap user, No clerkUserId Found"
+    )
   }
 
-  const userObj = await clerkClient.users.getUser(clerkUserId);
-
-  console.log("Clerk User Object:", userObj);
-
-  // ensure clerk user exists
-  if (!userObj) {
-    return res.status(404).json({ error: "Clerk user not found" });
-  }
-
-  // extract email and full name from Clerk user object (be defensive)
-  const email = 
-    userObj.emailAddresses?.[0]?.emailAddress || 
-    userObj.primaryEmailAddress?.emailAddress || 
-    undefined;
-    
-  const fullName = 
-    userObj.fullName || `${userObj.firstName || ""} ${userObj.lastName || ""}`.trim();
-
-  console.log("Extracted Email:", email);
-  console.log("Extracted Full Name:", fullName);
-
+  const { email, fullName } = await ClerkIdentityProvider_Service.getProfile(clerkUserId);
   if (!email || !fullName) {
-    return res.status(400).json({ error: "Clerk user missing email or full name" });
+    throw new ControllerError(
+      "BAD_REQUEST",
+      "Clerk user missing email or full name",
+      { clerkUserId }
+    )
   }
 
-  const user = await RegisterUser_Service({
+  const user = await bootstrapUser_Service({
     clerkUserId, 
     fullName,
     email,
@@ -52,7 +37,6 @@ export const bootstrapUser_Controller = asyncHandler(async (req, res) => {
     isActive: true,
   });
 
-  console.log("And of controller & Bootstraped User:", user);
   return res.status(201).json({
     success: true,
     data: {

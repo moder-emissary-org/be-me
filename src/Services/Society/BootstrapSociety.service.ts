@@ -1,7 +1,7 @@
-import { ServiceError } from "@/Error/ServicesErrors/MainCatcher/ServiceError.js";
-import { SystemError } from "@/Error/SystemError/System.Error.js";
-import { societyRepository_Repository } from "@/Repository/SocietyRepository/Society.repository.js";
-import { UserRepository_Repository } from "@/Repository/userRepository/UserRepository.repository.js";
+import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { SystemError } from "@/error/SystemError/System.Error.js";
+import { societyRepository_Repository } from "@/repository/SocietyRepository/Society.repository.js";
+import { UserRepository_Repository } from "@/repository/UserRepository/UserRepository.repository.js";
 import mongoose from "mongoose";
 
 interface BootstrapInput {
@@ -18,11 +18,7 @@ interface BootstrapOutput {
 }
 
 export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<BootstrapOutput> => {
-
-  console.log("BootstrapSocietyService called with input:", input);
-
   const session = await mongoose.startSession();
-
   try {
     session.startTransaction();
 
@@ -45,9 +41,6 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       },
       { session }
     ); 
-
-    console.log("Society created:", society);
-
     if (!society) {
       throw new ServiceError(
         'SOCIETY_CREATION_FAILED',
@@ -56,7 +49,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       );
     }
 
-    const adminUser = await UserRepository_Repository.create(
+    const adminUser = await UserRepository_Repository.createUserThroughSession(
       {
         clerkUserId: input.clerkUserId,
         role: "admin",
@@ -67,9 +60,6 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       },
       { session }
     );
-
-    console.log("Admin user created:", adminUser);
-
     if (!adminUser) {
       throw new SystemError(
         'ADMIN_USER_CREATION_FAILED',
@@ -80,7 +70,6 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
 
     await session.commitTransaction();
 
-    console.log("BootstrapSocietyService completed successfully:");
     return {
       societyId: society._id.toString(),
       adminUserId: adminUser._id.toString(),

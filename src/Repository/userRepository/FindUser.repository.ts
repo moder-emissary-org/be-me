@@ -8,4 +8,8 @@ export const findUserByID_Repository = {
   findById: async (id: string) => {
     return User.findById(id).lean();
   },
+
+  findByEmail: async (email: string) => {
+    return User.findOne({ email }).lean();
+  },
 }

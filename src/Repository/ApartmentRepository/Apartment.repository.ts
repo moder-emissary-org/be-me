@@ -15,18 +15,16 @@ export const ApartmentRepository_Repository = {
     options?: CreateOptions
   ): Promise<any> => {
     console.log("Creating apartment with data:", data);
-    const docs = await Apartment.create([data], {
-      session: options?.session ?? null,
-    });
-
-    console.log("Apartment created in repository:", docs);
+    const createOptions = options?.session
+      ? { session: options.session }
+      : undefined;
+    const docs = await Apartment.create([data], createOptions);
     return docs[0];
-
-  /*
-    // instance method: alternative to create() for more control
-    const doc = new Apartment(data);
-    await doc.save({ session: options?.session ?? null });
-    return doc;
-  */
+    /*
+      // instance method: alternative to create() for more control.
+      const doc = new Apartment(data);
+      await doc.save({ session: options?.session ?? null });
+      return doc;
+    */
   },
 }               

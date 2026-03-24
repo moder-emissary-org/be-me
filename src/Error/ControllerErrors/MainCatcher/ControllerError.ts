@@ -1,4 +1,4 @@
-import { AppError } from "@/Error/AppError/AppError.js";
+import { AppError } from "@/error/AppError/AppError.js";
 
 export class ControllerError extends AppError {
   readonly layer = 'controller';
