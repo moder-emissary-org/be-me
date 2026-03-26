@@ -1,4 +1,10 @@
-import { CreateApartment_Controllers, DeleteApartment_Controllers, GetApartment_Controllers, ListApartments_Controllers, UpdateApartment_Controllers } from "@/controllers/ApartmentControllers/Apartment.controllers.js";
+import {
+  CreateApartment_Controllers,
+  DeleteApartment_Controllers,
+  GetApartment_Controllers,
+  ListApartments_Controllers,
+  UpdateApartment_Controllers
+} from "@/controllers/ApartmentControllers/Apartment.controllers.js";
 import { clerkMiddleware } from "@clerk/express";
 import { Router } from "express";
 

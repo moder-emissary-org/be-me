@@ -6,7 +6,6 @@ on:
       - main
     paths-ignore:
       - 'Readme.md'
-      - 'Readme/**'
 
 jobs:
   build-and-boot:
@@ -28,7 +27,7 @@ jobs:
           docker run -d \
             -e PORT=8000 \
             -e NODE_ENV=production \
-            -e MONGODB_URI=mongodb://invalid-but-present \
+            -e MONGODB_URI=\
             -p 8000:8000 \
             --name backend_test \
             backend-ci
