@@ -6,6 +6,7 @@ import {
   inviteUser_Controller,
   assignUserToApartment_Controller,
 } from "@/controllers/UserControllers/User.controller.js";
+import { bootstrapUser_Controllers } from "@/controllers/UserControllers/BootstrapUser.controller.js";
 
 const router: Router = Router();
 router.get("/test", (req, res) => {
@@ -18,8 +19,8 @@ router.get("/me", getCurrentUser_Controllers);
  // This route is moved to ./system/system.routes.ts 
  // Read report on them in /readme dir
  // POST /api/users/bootstrap
- router.post("/bootstrap", bootstrapUser_Controllers);
  */
+router.post("/bootstrap", bootstrapUser_Controllers);
 
 // (admin) – Clerk invitation
 router.post("/invite", inviteUser_Controller);
