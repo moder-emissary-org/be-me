@@ -73,6 +73,7 @@ export const clerkWebhook_Controller = asyncHandler(async (req, res) => {
   if (invitedBy !== undefined) payload.invitedBy = invitedBy;
 
   try {
+    console.log("just hitting the createUserFromClerkWebhook_Service")
     await createUserFromClerkWebhook_Service(payload);
   } catch {
     // Log but return 200 so Clerk does not retry indefinitely for bad data
