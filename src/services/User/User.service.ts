@@ -113,6 +113,7 @@ export const createUserFromClerkWebhook_Service = async (
       { clerkUserId }
     );
   }
+  console.log("existing check passed")
 
   if (!societyId || !role) {
     throw new ServiceError(
@@ -130,6 +131,7 @@ export const createUserFromClerkWebhook_Service = async (
     );
   }
 
+  console.log("role check passed");
   const society = await FindSociety_repository.findById(societyId);
   if (!society) {
     throw new ServiceError(
@@ -138,12 +140,13 @@ export const createUserFromClerkWebhook_Service = async (
       { societyId, clerkUserId }
       );
   }
+  console.log("society check passed")
 
   const { getProfile } = ClerkIdentityProvider_Service;
   const profile = await getProfile(clerkUserId);
   const fullName = profile.fullName || email;
 
-  await UserRepository_Repository.createUserThroughSession(
+  const result = await UserRepository_Repository.createUserThroughSession(
     {
       clerkUserId,
       email,
@@ -155,6 +158,7 @@ export const createUserFromClerkWebhook_Service = async (
     },
     {}
   );
+  console.log("createUserFromClerkWebhook_Service result:", result)
 
   return { created: true };
 };
