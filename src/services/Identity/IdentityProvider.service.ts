@@ -4,7 +4,7 @@ import { clerkClient } from "@clerk/express";
 export interface ClerkProfile {
   clerkUserId: string;
   email: string;
-  fullName: string;
+  fullName: string | null;
 }
 
 export interface InvitationPublicMetadata {
@@ -54,18 +54,10 @@ export const ClerkIdentityProvider_Service = {
       user.fullName ??
       `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
 
-    if (!fullName) {
-      throw new ServiceError(
-        "SERVICE_INPUT_INVALID",
-        "Clerk user must have a full name",
-        { clerkUserId }
-      );
-    }
-
     return {
       clerkUserId,
       email,
-      fullName,
+      fullName: fullName || null,
     };
   },
 }
