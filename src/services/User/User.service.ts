@@ -9,6 +9,7 @@ import {
   ClerkIdentityProvider_Service,
   type InvitationPublicMetadata,
 } from "@/services/Identity/IdentityProvider.service.js";
+import mongoose from "mongoose";
 
 // --- Invite User (Clerk invitation; no DB write) ---
 
@@ -138,13 +139,17 @@ export const createUserFromClerkWebhook_Service = async (
       "SOCIETY_NOT_FOUND",
       "Society not found",
       { societyId, clerkUserId }
-      );
+    );
   }
   console.log("society check passed")
 
   const { getProfile } = ClerkIdentityProvider_Service;
   const profile = await getProfile(clerkUserId);
   const fullName = profile.fullName || email;
+
+  console.log("successfull full name extraction from indetity provider: ", fullName);
+  console.log("DB NAME:", mongoose.connection.name);
+  console.log("DB HOST:", mongoose.connection.host);
 
   const result = await UserRepository_Repository.createUserThroughSession(
     {
@@ -155,8 +160,7 @@ export const createUserFromClerkWebhook_Service = async (
       societyId: society._id,
       apartmentId: null,
       isActive: true,
-    },
-    {}
+    }
   );
   console.log("createUserFromClerkWebhook_Service result:", result)
 
