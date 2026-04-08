@@ -2,6 +2,7 @@ import { ControllerError } from "@/error/ControllerErrors/MainCatcher/Controller
 import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
 import { bootstrapSociety_Service } from "@/services/Society/BootstrapSociety.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
+import { resolveFullName } from "@/utils/utility.js";
 import { getAuth } from "@clerk/express";
 
 export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
@@ -13,7 +14,12 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
     )
   }
 
-  const { email, fullName } = await ClerkIdentityProvider_Service.getProfile(clerkUserId);
+  const profile =
+    await ClerkIdentityProvider_Service.getProfile(clerkUserId);
+
+  const fullName = resolveFullName(profile.fullName, profile.email);
+  const email = profile.email;
+  
   const { name, address } = req.body;
   if (!name || !address) {
     throw new ControllerError(
@@ -27,7 +33,7 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
     address,
     clerkUserId,
     email,
-    fullName
+    fullName,
   });
   if (!society) {
     throw new ControllerError(
