@@ -18,6 +18,7 @@ export class ServiceError extends AppError {
       | 'SOCIETY_ALREADY_BOOTSTRAPPED'
       | 'ADMIN_NOT_FOUND'
       | 'INVITATION_FAILED'
+      | 'INVITATION_ALREADY_EXISTS'
       | 'APARTMENT_NOT_FOUND',
     message: string,
     context?: Record<string, unknown>,
