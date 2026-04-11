@@ -10,6 +10,8 @@ import {
   type InvitationPublicMetadata,
 } from "@/services/Identity/IdentityProvider.service.js";
 import mongoose from "mongoose";
+import { InvitationRepository } from "@/repository/InvitationRepository/Invitation.Repository.js";
+import { Invitation } from "@/models/Invitation.models.js";
 
 // --- Invite User (Clerk invitation; no DB write) ---
 
@@ -73,6 +75,22 @@ export const inviteUser_Service = async (
     );
   }
 
+  const existingInvitation = await InvitationRepository.findPendingByEmail(email);
+  if (existingInvitation) {
+    throw new ServiceError(
+      "INVITATION_ALREADY_EXISTS",
+      "User already invited",
+      { email }
+    );
+  }
+
+  await InvitationRepository.create({
+    email,
+    role,
+    societyId: String(societyId),
+    invitedBy,
+  })
+
   const metadata: InvitationPublicMetadata = {
     societyId: String(societyId),
     role,
@@ -82,6 +100,8 @@ export const inviteUser_Service = async (
   try {
     await ClerkIdentityProvider_Service.createInvitation(email, metadata);
   } catch {
+    await Invitation.deleteOne({email})
+
     throw new ServiceError(
       "INVITATION_FAILED",
       "Failed to send invitation",
@@ -105,17 +125,21 @@ export interface CreateUserFromClerkWebhookInput {
 export const createUserFromClerkWebhook_Service = async (
   input: CreateUserFromClerkWebhookInput
 ): Promise<{ created: boolean }> => {
-  const { clerkUserId, email, role, societyId } = input;
+  const { clerkUserId, email } = input;
+
   const existing = await findUserByID_Repository.findByClerkUserId(clerkUserId);
   if (existing) {
-    throw new ServiceError(
-      "USER_ALREADY_REGISTERED",
-      "User already exists",
-      { clerkUserId }
-    );
+    return { created: false}
   }
+
   console.log("existing check passed")
 
+  const invitation = await InvitationRepository.findPendingByEmail(email); 
+  if (!invitation) {
+    return { created: false };
+  }
+
+  const { role, societyId } = invitation;
   if (!societyId || !role) {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
@@ -133,6 +157,7 @@ export const createUserFromClerkWebhook_Service = async (
   }
 
   console.log("role check passed");
+
   const society = await FindSociety_repository.findById(societyId);
   if (!society) {
     throw new ServiceError(
@@ -141,6 +166,7 @@ export const createUserFromClerkWebhook_Service = async (
       { societyId, clerkUserId }
     );
   }
+  
   console.log("society check passed")
 
   const { getProfile } = ClerkIdentityProvider_Service;
