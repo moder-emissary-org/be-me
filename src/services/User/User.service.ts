@@ -117,9 +117,6 @@ export const inviteUser_Service = async (
 export interface CreateUserFromClerkWebhookInput {
   clerkUserId: string;
   email: string;
-  role: "resident" | "guard";
-  societyId: string;
-  invitedBy?: string;
 }
 
 export const createUserFromClerkWebhook_Service = async (
