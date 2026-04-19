@@ -1,4 +1,3 @@
-import type { Types } from "mongoose";
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js";
 import { UserRepository_Repository } from "@/repository/UserRepository/UserRepository.repository.js";
@@ -6,12 +5,11 @@ import { UpdateUser_Repository } from "@/repository/UserRepository/UpdateUser.re
 import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
 import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindApartment.repository.js";
 import {
-  ClerkIdentityProvider_Service,
-  type InvitationPublicMetadata,
+  ClerkIdentityProvider_Service
 } from "@/services/Identity/IdentityProvider.service.js";
 import mongoose from "mongoose";
 import { InvitationRepository } from "@/repository/InvitationRepository/Invitation.Repository.js";
-import { Invitation } from "@/models/Invitation.models.js";
+import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkError.js";
 
 // --- Invite User (Clerk invitation; no DB write) ---
 
@@ -21,14 +19,28 @@ export interface InviteUserInput {
   invitedBy: string; // clerkUserId of admin
 }
 
+type InviteUserResult =
+  | {
+    success: true;
+    message: string;
+  }
+  | {
+    success: false;
+    code:
+    | "INVITATION_ALREADY_EXISTS"
+    | "USER_ALREADY_REGISTERED"
+    | "INVITATION_INVALID";
+    message: string;
+  };
+
 export const inviteUser_Service = async (
   input: InviteUserInput
-): Promise<{ success: true; message: string }> => {
+): Promise<InviteUserResult> => {
   const { email, role, invitedBy } = input;
   if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
-      "Invalid email",
+      "Invalid email | from inviteUser_Service",
       { email }
     );
   }
@@ -36,7 +48,7 @@ export const inviteUser_Service = async (
   if (role !== "resident" && role !== "guard") {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
-      "Invalid role",
+      "Invalid role | from inviteUser_Service",
       { role }
     );
   }
@@ -45,7 +57,7 @@ export const inviteUser_Service = async (
   if (!adminUser) {
     throw new ServiceError(
       "ADMIN_NOT_FOUND",
-      "Admin account not found",
+      "Admin account not found | from inviteUser_Service",
       { clerkUserId: invitedBy },
     );
   }
@@ -53,7 +65,7 @@ export const inviteUser_Service = async (
   if (adminUser.role !== "admin") {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
-      "Unauthorized operation",
+      "Unauthorized operation | from inviteUser_Service",
       { role: adminUser.role },
     );
   }
@@ -61,7 +73,7 @@ export const inviteUser_Service = async (
   if (!adminUser.isActive) {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
-      "Unauthorized operation",
+      "Unauthorized operation | from inviteUser_Service",
       { reason: "Admin disabled" },
     );
   }
@@ -70,46 +82,81 @@ export const inviteUser_Service = async (
   if (!societyId) {
     throw new ServiceError(
       "SOCIETY_NOT_FOUND",
-      "Admin has no society",
+      "Admin has no society | from inviteUser_Service",
       { clerkUserId: invitedBy },
     );
   }
 
-  const existingInvitation = await InvitationRepository.findPendingByEmail(email);
-  if (existingInvitation) {
-    throw new ServiceError(
-      "INVITATION_ALREADY_EXISTS",
-      "User already invited",
-      { email }
-    );
-  }
-
-  await InvitationRepository.create({
-    email,
-    role,
-    societyId: String(societyId),
-    invitedBy,
-  })
-
-  const metadata: InvitationPublicMetadata = {
-    societyId: String(societyId),
-    role,
-    invitedBy: adminUser.clerkUserId,
-  };
+  // why this is not correct? we want to prevent duplicate invitations, right?
+  // this is vulnerable because checking for existing invitation is not fit for race conditions: if two invitations are sent at the same time, both will pass the check and create duplicate invitations. we need to rely on the database unique constraint to prevent duplicates, and handle that error gracefully.
+  // so that is why we removed this check and instead handle the duplicate key error when trying to create the invitation in the database. this way, we can ensure that even if multiple requests come in at the same time, only one will succeed and the others will receive a clear error message about the duplicate invitation.
+  // const existingInvitation = await InvitationRepository.findPendingByEmail(email);
+  // if (existingInvitation) {
+  //   throw new ServiceError(
+  //     "INVITATION_ALREADY_EXISTS",
+  //     "User already invited | from inviteUser_Service",
+  //     { email }
+  //   );
+  // }
 
   try {
-    await ClerkIdentityProvider_Service.createInvitation(email, metadata);
-  } catch {
-    await Invitation.deleteOne({email})
+    await InvitationRepository.create({
+      email,
+      role,
+      societyId: societyId,
+      invitedBy,
+    });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      return {
+        success: false,
+        code: "INVITATION_ALREADY_EXISTS",
+        message: "User already invited",
+      };
+    }
+    throw err;
+  }
 
+  try {
+    await ClerkIdentityProvider_Service.createInvitation(email);
+  } catch (err: any) {
+    const type = mapClerkInvitationError(err);
+    if (type === "DUPLICATE") {
+      return {
+        success: false,
+        code: "INVITATION_ALREADY_EXISTS",
+        message: "User already invited",
+      };
+    }
+
+    if (type === "ALREADY_ACCEPTED") {
+      return {
+        success: false,
+        code: "USER_ALREADY_REGISTERED",
+        message: "User already registered, ask them to login",
+      };
+    }
+
+    if (type === "REVOKED") {
+      return {
+        success: false,
+        code: "INVITATION_INVALID",
+        message: "Invitation was revoked, retry sending",
+      };
+    }
+
+    // unknown error from Clerk
     throw new ServiceError(
       "INVITATION_FAILED",
-      "Failed to send invitation",
+      "Failed to send invitation | from inviteUser_Service",
       { email }
     );
   }
 
-  return { success: true, message: "Invitation sent successfully" };
+  return {
+    success: true,
+    message: "Invitation sent successfully | from inviteUser_Service"
+  };
 };
 
 // --- Create User from Clerk user.created webhook ---
@@ -126,15 +173,15 @@ export const createUserFromClerkWebhook_Service = async (
 
   const existing = await findUserByID_Repository.findByClerkUserId(clerkUserId);
   if (existing) {
-    return { created: false}
-  }
+    return { created: false }
+  };
 
   console.log("existing check passed")
 
-  const invitation = await InvitationRepository.findPendingByEmail(email); 
+  const invitation = await InvitationRepository.findPendingByEmail(email);
   if (!invitation) {
     return { created: false };
-  }
+  };
 
   const { role, societyId } = invitation;
   if (!societyId || !role) {
@@ -143,7 +190,7 @@ export const createUserFromClerkWebhook_Service = async (
       "Missing metadata: only invited users are registered",
       { clerkUserId }
     );
-  }
+  };
 
   if (role !== "resident" && role !== "guard") {
     throw new ServiceError(
@@ -151,7 +198,7 @@ export const createUserFromClerkWebhook_Service = async (
       "Invalid role: must be 'resident' or 'guard'",
       { role, clerkUserId }
     );
-  }
+  };
 
   console.log("role check passed");
 
@@ -163,7 +210,7 @@ export const createUserFromClerkWebhook_Service = async (
       { societyId, clerkUserId }
     );
   }
-  
+
   console.log("society check passed")
 
   const { getProfile } = ClerkIdentityProvider_Service;
