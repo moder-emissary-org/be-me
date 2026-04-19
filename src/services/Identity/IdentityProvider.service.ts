@@ -7,22 +7,14 @@ export interface ClerkProfile {
   fullName: string | null;
 }
 
-export interface InvitationPublicMetadata {
-  societyId: string;
-  role: "resident" | "guard";
-  invitedBy: string;
-  [key: string]: unknown;
-}
-
 // Only For Clerk Related Operations
 export const ClerkIdentityProvider_Service = {
+  
   async createInvitation(
     email: string,
-    publicMetadata: InvitationPublicMetadata
   ): Promise<{ id: string }> {
     const invitation = await clerkClient.invitations.createInvitation({
       emailAddress: email,
-      publicMetadata: publicMetadata,
       redirectUrl: 'http://localhost:3000/'
     });
     return { id: invitation.id };
