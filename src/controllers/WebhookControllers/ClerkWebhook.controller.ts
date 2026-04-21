@@ -35,42 +35,19 @@ export const clerkWebhook_Controller = asyncHandler(async (req, res) => {
   const data = evt.data as {
     id?: string;
     email_addresses?: Array<{ email_address?: string }>;
-    public_metadata?: Record<string, unknown>;
   };
 
   const clerkUserId = data.id;
   const email = (data.email_addresses as Array<{ email_address?: string }> | undefined)?.[0]?.email_address;
-  const metadata = data.public_metadata as
-    | { societyId: string; role: string; invitedBy: string }
-    | undefined;
 
   if (!clerkUserId || !email) {
     return res.status(200).json({ received: true });
   }
 
-  // const societyId = metadata?.societyId as string;
-  // const role = metadata?.role as "resident" | "guard";
-  if (!metadata?.societyId) {
-    console.error("Webhook missing societyId", { data });
-    return res.status(200).json({ received: true });
-  }
-  const societyId = metadata.societyId;
-
-  const role =
-    metadata.role === "resident" || metadata.role === "guard"
-      ? metadata.role
-      : "resident";
-
-  const invitedBy = metadata.invitedBy as string;
-
-  console.log("before hitting the createUserFromClerkWebhook_Service : ", { societyId, role, invitedBy })
   const payload: Parameters<typeof createUserFromClerkWebhook_Service>[0] = {
     clerkUserId,
-    email,
-    role: role ?? "resident",
-    societyId: societyId,
+    email
   };
-  if (invitedBy !== undefined) payload.invitedBy = invitedBy;
 
   try {
     console.log("just hitting the createUserFromClerkWebhook_Service")

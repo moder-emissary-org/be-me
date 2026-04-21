@@ -5,7 +5,7 @@ interface createUserInput {
   clerkUserId: string;
   fullName: string;
   email: string; 
-  role: "admin" | "resident" | "guard";
+  role: "resident" | "guard";
   societyId: Types.ObjectId;
   apartmentId?: Types.ObjectId | null; // optional, only for residents
   isActive: boolean;
