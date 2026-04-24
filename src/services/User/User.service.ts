@@ -7,7 +7,7 @@ import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindA
 import {
   ClerkIdentityProvider_Service
 } from "@/services/Identity/IdentityProvider.service.js";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { InvitationRepository } from "@/repository/InvitationRepository/Invitation.Repository.js";
 import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkError.js";
 
@@ -241,7 +241,7 @@ export const createUserFromClerkWebhook_Service = async (
 
 export interface AssignUserToApartmentInput {
   userId: string;
-  apartmentId: string;
+  apartmentId: Types.ObjectId;
   requestedBy: string; // clerkUserId of admin
 }
 
@@ -252,30 +252,41 @@ export const assignUserToApartment_Service = async (
 
   const adminUser = await findUserByID_Repository.findByClerkUserId(requestedBy);
   if (!adminUser) {
-    throw new ServiceError("USER_NOT_FOUND", "Admin account not found", {
+    throw new ServiceError(
+      "USER_NOT_FOUND",
+      "Admin account not found | from assignUserToApartment_Service", {
       clerkUserId: requestedBy,
     });
   }
 
   if (adminUser.role !== "admin") {
-    throw new ServiceError("OPERATION_NOT_ALLOWED", "Unauthorized operation", {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED", 
+      "Unauthorized operation | from assignUserToApartment_Service", {
       role: adminUser.role,
     });
   }
 
   if (!adminUser.isActive) {
-    throw new ServiceError("OPERATION_NOT_ALLOWED", "Unauthorized operation", {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED", 
+      "Unauthorized operation | from assignUserToApartment_Service", {
       reason: "Admin disabled",
     });
   }
 
   const targetUser = await findUserByID_Repository.findById(userId);
   if (!targetUser) {
-    throw new ServiceError("USER_NOT_FOUND", "User not found", { userId });
+    throw new ServiceError(
+      "USER_NOT_FOUND", 
+      "User not found | from assignUserToApartment_Service", { userId }
+    );
   }
 
   if (!targetUser.isActive) {
-    throw new ServiceError("OPERATION_NOT_ALLOWED", "User is not active", {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED", 
+      "User is not active | from assignUserToApartment_Service", {
       userId,
     });
   }
@@ -283,7 +294,7 @@ export const assignUserToApartment_Service = async (
   if (String(targetUser.societyId) !== String(adminUser.societyId)) {
     throw new ServiceError(
       "APARTMENT_SCOPE_INVALID",
-      "User does not belong to the same society",
+      "User does not belong to the same society | from assignUserToApartment_Service",
       { userId, requestedBy }
     );
   }
