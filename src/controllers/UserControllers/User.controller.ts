@@ -6,6 +6,7 @@ import {
 } from "@/services/User/User.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { clerkClient, getAuth } from "@clerk/express";
+import type { Types } from "mongoose";
 
 export const getCurrentUser_Controllers = asyncHandler(async (req, res) => {
   const { userId: clerkUserId } = getAuth(req);
@@ -42,7 +43,7 @@ export const assignUserToApartment_Controller = asyncHandler(async (req, res) =>
     );
   }
   const { userId } = req.params;
-  const { apartmentId } = req.body as { apartmentId: string };
+  const { apartmentId } = req.body as { apartmentId: Types.ObjectId };
   if (!userId || !apartmentId) {
     throw new ControllerError(
       "BAD_REQUEST",
