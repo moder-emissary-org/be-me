@@ -26,7 +26,7 @@ router.post("/bootstrap", bootstrapUser_Controllers);
 router.post("/invite", inviteUser_Controller);
 
 // (admin) – membership
-router.post("/:userId/assign-apartment", assignUserToApartment_Controller);
+router.patch("/:userId/assign-apartment", assignUserToApartment_Controller);
 
 // GET /api/users (admin)
 // router.get("/", listUsersController);
