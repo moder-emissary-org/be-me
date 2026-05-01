@@ -1,12 +1,29 @@
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { createVisitor_Service } from "@/services/Visitors/Visitors.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
+import { getAuth } from "@clerk/express";
 
 export const createVisitor_Controllers = asyncHandler( async(req, res) => {
-  console.log("Create Visitor controller hit!");
-  // Here you would typically call a service function to handle the business logic of creating a visitor
-  // For example: const newVisitor = await createVisitor_Service(req.body);
-  
-  // For now, we'll just return a success message
-  res.status(201).json({ message: "Visitor created successfully" });
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to bootstarp Society, No clerkUserId Found"
+    )
+  };
+  const { name, purpose, contactNumber, apartmentId, expectedAt } = req.body;
+  const result = await createVisitor_Service({
+    clerkUserId,
+    name,
+    purpose,
+    contactNumber,
+    apartmentId,
+    expectedAt,
+  });
+  res.status(201).json({
+    message: "Visitor created successfully",
+    data: result,
+  });
 });
 
 export const getVisitors_Controllers = asyncHandler( async(req, res) => {
