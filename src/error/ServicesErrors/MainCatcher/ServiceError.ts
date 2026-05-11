@@ -19,7 +19,13 @@ export class ServiceError extends AppError {
       | 'ADMIN_NOT_FOUND'
       | 'INVITATION_FAILED'
       | 'INVITATION_ALREADY_EXISTS'
-      | 'APARTMENT_NOT_FOUND',
+      | 'APARTMENT_NOT_FOUND'
+      | 'USER_INACTIVE'
+      | 'VISITOR_NOT_FOUND'
+      | 'VISITOR_NOT_BELONGS_TO_APARTMENT'
+      | 'VISITOR_NOT_BELONGS_TO_SOCIETY'
+      | 'VISITOR_NOT_BELONGS_TO_RESIDENT'
+      | 'INVALID_VISITOR_APPROVAL_TRANSITION',
     message: string,
     context?: Record<string, unknown>,
   ) {
