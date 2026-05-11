@@ -12,14 +12,11 @@ const router: Router = Router();
 router.get("/test", (req, res) => {
   res.json({ message: "User router is working!" });
 });
+
 router.use(clerkMiddleware());
+
 router.get("/me", getCurrentUser_Controllers);
 
-/** 
- // This route is moved to ./system/system.routes.ts 
- // Read report on them in /readme dir
- // POST /api/users/bootstrap
- */
 router.post("/bootstrap", bootstrapUser_Controllers);
 
 // (admin) – Clerk invitation
@@ -27,9 +24,6 @@ router.post("/invite", inviteUser_Controller);
 
 // (admin) – membership
 router.patch("/:userId/assign-apartment", assignUserToApartment_Controller);
-
-// GET /api/users (admin)
-// router.get("/", listUsersController);
 
 // POST /api/users (admin)
 router.post("/create", createUser_Controller);
