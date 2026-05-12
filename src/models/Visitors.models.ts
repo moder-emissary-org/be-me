@@ -6,10 +6,17 @@ const visitorSchema = new Schema(
   {
     name: { type: String, required: true },
     purpose: { type: String, required: true },
-    status: {
+    approvalStatus: {
       type: String,
-      enum: ["upcoming", "current", "past", "pending"],
+      enum: ["pending", "approved", "rejected"],
       required: true,
+      default: "pending",
+    },
+    visitStatus: {
+      type: String,
+      enum: ["expected", "checked_in", "checked_out"],
+      required: true,
+      default: "expected",
     },
     apartmentId: { type: Schema.Types.ObjectId, ref: "Apartment", required: true },
     societyId: { type: Schema.Types.ObjectId, ref: "Society", required: true },
