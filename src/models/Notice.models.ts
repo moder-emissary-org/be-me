@@ -5,11 +5,15 @@ const NoticeSchema = new Schema(
     title: {
       type: String,
       required: true,
+      trim: true, 
+      maxlength: 120,
     },
 
-    body: {
+    content: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 5000,
     },
 
     societyId: {
@@ -25,12 +29,14 @@ const NoticeSchema = new Schema(
       required: true, // admin only (enforced in service)
     },
 
-    isActive: {
+    archievedAt: {
       type: Boolean,
       default: true, // soft hide
     },
   },
   { timestamps: true }
 );
+
+NoticeSchema.index({ societyId: 1, createdAt: -1 });
 
 export const Notice = mongoose.model("Notice", NoticeSchema);
