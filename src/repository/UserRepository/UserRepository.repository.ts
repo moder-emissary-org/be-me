@@ -11,7 +11,7 @@ export const UserRepository_Repository = {
       clerkUserId: string;
       role: "admin" | "resident" | "guard";
       societyId: Types.ObjectId;
-      apartmentId?: Types.ObjectId | null;
+      apartmentId: Types.ObjectId | null;
       isActive: boolean;
       email: string;
       fullName: string;

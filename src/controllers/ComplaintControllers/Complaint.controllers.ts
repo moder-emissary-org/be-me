@@ -1,12 +1,30 @@
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { createComplaint_Service } from "@/services/Complaints/Complaints.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
+import { getAuth } from "@clerk/express";
 
 export const createComplaint_Controllers = asyncHandler(async (req, res) => {
-  console.log("Create Complaint controller hit!");
-  // Here you would typically call a service function to handle the business logic of creating a complaint
-  // For example: const newComplaint = await createComplaint_Service(req.body);
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to create a complaint: no authenticated user"
+    );
+  }
 
-  // For now, we'll just return a success message
-  res.status(201).json({ message: "Complaint created successfully" });
+  const { title, description, category } = req.body;
+
+  const result = await createComplaint_Service({
+    clerkUserId,
+    title,
+    description,
+    category,
+  });
+
+  res.status(201).json({
+    message: "Complaint created successfully",
+    data: result,
+  });
 });
 
 export const getComplaint_Controllers = asyncHandler(async (req, res) => {

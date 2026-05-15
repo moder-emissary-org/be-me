@@ -1,3 +1,11 @@
+// -------------------------------------------------------------------------- //
+//                                                                            //
+// --------------------------- Abounded service ------------------------------//
+//                                                                            //
+// -------------------------------------------------------------------------- // 
+
+
+
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import { saveUser_Repository } from "@/repository/UserRepository/SaveUser.repository.js";
 import type { Types } from "mongoose";

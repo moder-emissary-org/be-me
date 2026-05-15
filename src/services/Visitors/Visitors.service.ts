@@ -22,15 +22,16 @@ export const createVisitor_Service = async (input: createVisitorInput) => {
         apartmentId,
         expectedAt,
     } = input;
-    const guard = await resolveCurrentUser_Service({ clerkUserId });
-    if (guard.authority.role !== "guard") {
+
+    const actor = await resolveCurrentUser_Service({ clerkUserId });
+    if (actor.authority.role !== "guard") {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to create visitor, User is not a guard",
             { clerkUserId }
-        )
+        );
     };
-    if (!guard.user.isActive) {
+    if (!actor.user.isActive) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to create visitor, User is not a guard",
@@ -45,14 +46,14 @@ export const createVisitor_Service = async (input: createVisitorInput) => {
             "Target apartment does not exist",
             { apartmentId }
         );
-    }
-    if (!apartment.societyId.equals(guard.scope.society.id)) {
+    };
+    if (!apartment.societyId.equals(actor.scope.society.id)) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Cannot create visitor outside your society scope",
-            { apartmentId, guardSocietyId: guard.scope.society.id }
+            { apartmentId, guardSocietyId: actor.scope.society.id }
         );
-    }
+    };
 
     if (!name || !purpose || !contactNumber || !expectedAt) {
         throw new ServiceError(
@@ -60,14 +61,14 @@ export const createVisitor_Service = async (input: createVisitorInput) => {
             "Missing required visitor fields",
             { name, purpose, contactNumber, expectedAt }
         );
-    }
+    };
 
     const visitorPayload = {
         name,
         purpose,
         contactNumber,
         apartmentId: new Types.ObjectId(apartmentId),
-        societyId: new Types.ObjectId(guard.scope.society.id),
+        societyId: new Types.ObjectId(actor.scope.society.id),
         expectedAt,
 
         // backend controlled fields
@@ -77,13 +78,14 @@ export const createVisitor_Service = async (input: createVisitorInput) => {
         actualEntryAt: null,
         actualExitAt: null,
     };
+
     const visitor = await visitorRepository.create(visitorPayload);
     return {
         id: visitor._id.toString(),
         name: visitor.name,
         visitStatus: visitor.visitStatus,
         approvalStatus: visitor.approvalStatus,
-    }
+    };
 }
 
 export interface updateVisitorApprovalStatusInput {
@@ -92,36 +94,38 @@ export interface updateVisitorApprovalStatusInput {
     approvalStatus: "approved" | "rejected";
 }
 
-// for this serivice use /be-me-docs/Readme/Contracts&Reports/ArchitecturalDecisionsReports/visitor/ApprovalStatusSystemFlow.Report.md
+// service discussions /be-me-docs/Readme/Contracts&Reports/ArchitecturalDecisionsReports/visitor/ApprovalStatusSystemFlow.Report.md
 export const updateVisitorApprovalStatus_Service = async (input: updateVisitorApprovalStatusInput) => {
     const {
         clerkUserId,
         visitorId,
         approvalStatus,
     } = input;
-    const resident = await resolveCurrentUser_Service({ clerkUserId });
-    if (!resident.scope.apartment) {
+
+    const actor = await resolveCurrentUser_Service({ clerkUserId });
+    if (!actor.scope.apartment) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to update visitor approval status, User does not have an apartment",
             { clerkUserId }
         );
     };
-    if (resident.authority.role !== "resident") {
+    if (actor.authority.role !== "resident") {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to update visitor approval status, User is not a resident",
             { clerkUserId }
         );
     };
-    if (!resident.user.isActive) {
+    if (!actor.user.isActive) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to update visitor approval status, User is not active",
             { clerkUserId }
         );
     };
-    const approvedBy = new Types.ObjectId(resident.user.id);
+
+    const approvedBy = new Types.ObjectId(actor.user.id);
 
     const visitor = await visitorRepository.findById(visitorId);
     if (!visitor) {
@@ -131,7 +135,6 @@ export const updateVisitorApprovalStatus_Service = async (input: updateVisitorAp
             { visitorId }
         );
     };
-
     if (visitor.approvalStatus !== "pending") {
         throw new ServiceError(
             "INVALID_VISITOR_APPROVAL_TRANSITION",
@@ -141,21 +144,19 @@ export const updateVisitorApprovalStatus_Service = async (input: updateVisitorAp
                 currentApprovalStatus: visitor.approvalStatus,
             }
         );
-    }
-
-    if (!visitor.societyId.equals(resident.scope.society.id)) {
+    };
+    if (!visitor.societyId.equals(actor.scope.society.id)) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to update visitor approval status, Visitor does not belong to this society",
-            { visitorId, residentSocietyId: resident.scope.society.id }
+            { visitorId, residentSocietyId: actor.scope.society.id }
         );
     };
-
-    if (!visitor.apartmentId.equals(resident.scope.apartment.id)) {
+    if (!visitor.apartmentId.equals(actor.scope.apartment.id)) {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Not authorized to update visitor approval status, Visitor does not belong to this apartment",
-            { visitorId, residentApartmentId: resident.scope.apartment.id }
+            { visitorId, residentApartmentId: actor.scope.apartment.id }
         );
     };
 
@@ -172,34 +173,33 @@ export const getPendingVisitorsForResident_Service = async (input: getPendingVis
     const {
         clerkUserId,
     } = input;
-    const resident = await resolveCurrentUser_Service({ clerkUserId });
-    if (!resident.user.isActive) {
+
+    const actor = await resolveCurrentUser_Service({ clerkUserId });
+    if (!actor.user.isActive) {
         throw new ServiceError(
             "USER_INACTIVE",
             "Inactive user cannot fetch visitors",
             { clerkUserId }
         );
-    }
-
-    if (resident.authority.role !== "resident") {
+    };
+    if (actor.authority.role !== "resident") {
         throw new ServiceError(
             "OPERATION_NOT_ALLOWED",
             "Only residents can access pending visitors",
             { clerkUserId }
         );
-    }
-
-    if (!resident.scope.apartment) {
+    };
+    if (!actor.scope.apartment) {
         throw new ServiceError(
             "APARTMENT_NOT_FOUND",
             "Resident is not assigned to an apartment",
             { clerkUserId }
         );
-    }
+    };
 
     const visitors = await visitorRepository.findPendingByApartment({
-        societyId: resident.scope.society.id,
-        apartmentId: resident.scope.apartment.id,
+        societyId: actor.scope.society.id,
+        apartmentId: actor.scope.apartment.id,
         limit: input.limit,
         cursor: input.cursor
     });
@@ -208,7 +208,7 @@ export const getPendingVisitorsForResident_Service = async (input: getPendingVis
         throw new ServiceError(
             "VISITOR_NOT_FOUND",
             "No pending visitors found",
-            { residentApartmentId: resident.scope.apartment.id }
+            { residentApartmentId: actor.scope.apartment.id }
         );
     };
     return visitors;
