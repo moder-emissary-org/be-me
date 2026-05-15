@@ -57,6 +57,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
         isActive: true,
         email: input.email,
         fullName: input.fullName,
+        apartmentId: null
       },
       { session }
     );
