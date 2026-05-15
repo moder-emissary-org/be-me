@@ -1,39 +1,83 @@
 import mongoose, { Schema } from "mongoose";
 
+export const COMPLAINT_CATEGORIES = [
+  "maintenance",
+  "security",
+  "cleanliness",
+  "parking",
+  "noise",
+  "water",
+  "electricity",
+  "other",
+] as const;
+
+export type ComplaintCategory = (typeof COMPLAINT_CATEGORIES)[number];
+
+export type ComplaintStatus = "open" | "in_progress" | "resolved";
+
 const ComplaintSchema = new Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    maxlength: 120,
   },
+
   description: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    maxlength: 5000,
   },
+
   status: {
     type: String,
-    enum: ["pending", "in_progress", "resolved", "closed"],
-    default: "pending",
+    enum: ["open", "in_progress", "resolved"],
+    default: "open",
   },
-  priority: {
+
+  category: {
     type: String,
-    enum: ["low", "medium", "high"],
-    default: "medium",
+    enum: COMPLAINT_CATEGORIES,
+    required: true,
   },
-  userId: {
+
+  resolvedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  },
+
+  resolvedAt: {
+    type: Date
+  },
+
+  adminRemark: {
+    type: String
+  },
+
+  createdBy: {
     type: mongoose.Types.ObjectId,
     ref: "User",
     required: true
   },
+
   societyId: {
     type: mongoose.Types.ObjectId,
     ref: "Society",
     required: true
   },
+
   apartmentId: {
     type: mongoose.Types.ObjectId,
     ref: "Apartment",
     required: true
   },
 }, { timestamps: true });
+
+ComplaintSchema.index({ societyId: 1, createdAt: -1 });
+
+ComplaintSchema.index({ createdBy: 1, createdAt: -1 });
+
+ComplaintSchema.index({ societyId: 1, status: 1 });
 
 export const Complaint = mongoose.model("Complaint", ComplaintSchema);
