@@ -1,8 +1,15 @@
+// -------------------------------------------------------------------------- //
+//                                                                            //
+// -------------------------- Abounded controller ----------------------------//
+//                                                                            //
+// -------------------------------------------------------------------------- // 
+
+
 import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
 import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
 import { bootstrapUser_Service } from "@/services/User/RegisterUser.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
-import { clerkClient, getAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 
 // get the userId from the session obj using getAuth then 
 // extract the user full object from clerk using clerkClient by providing the current userId
