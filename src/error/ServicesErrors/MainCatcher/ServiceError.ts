@@ -25,7 +25,9 @@ export class ServiceError extends AppError {
       | 'VISITOR_NOT_BELONGS_TO_APARTMENT'
       | 'VISITOR_NOT_BELONGS_TO_SOCIETY'
       | 'VISITOR_NOT_BELONGS_TO_RESIDENT'
-      | 'INVALID_VISITOR_APPROVAL_TRANSITION',
+      | 'INVALID_VISITOR_APPROVAL_TRANSITION'
+      | 'COMPLAINT_NOT_FOUND'
+      | 'INVALID_COMPLAINT_STATUS_TRANSITION',
     message: string,
     context?: Record<string, unknown>,
   ) {
