@@ -13,7 +13,7 @@ export const COMPLAINT_CATEGORIES = [
 
 export type ComplaintCategory = (typeof COMPLAINT_CATEGORIES)[number];
 
-export type ComplaintStatus = "open" | "in_progress" | "resolved";
+export type ComplaintStatus = "open" | "in_progress" | "resolved" | "rejected";
 
 const ComplaintSchema = new Schema({
   title: {
@@ -32,7 +32,7 @@ const ComplaintSchema = new Schema({
 
   status: {
     type: String,
-    enum: ["open", "in_progress", "resolved"],
+    enum: ["open", "in_progress", "resolved", "rejected"],
     default: "open",
   },
 
