@@ -1,7 +1,10 @@
 import { COMPLAINT_CATEGORIES } from "@/models/Complaint.models.js";
-import type { ComplaintCategory } from "@/models/Complaint.models.js";
+import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
-import { complaints_Repository } from "@/repository/ComplaintsRepository/Complaints.repository.js";
+import {
+  complaints_Repository,
+  type UpdateComplaintStatusRepositoryInput,
+} from "@/repository/ComplaintsRepository/Complaints.repository.js";
 import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js";
 import { Types } from "mongoose";
 
@@ -27,8 +30,6 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
 
   const role = actor.authority.role;
   const apartmentScope = actor.scope.apartment;
-
-  console.log("authority check details: ", {role, apartmentScope});
 
   const canCreateComplaint =
     (role === "resident" && apartmentScope !== null) ||
@@ -93,4 +94,166 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
     category: complaint.category,
     status: complaint.status,
   };
+};
+
+const ADMIN_REMARK_MAX = 2000;
+
+type AdminSettableComplaintStatus = "in_progress" | "resolved" | "rejected";
+
+const ALLOWED_STATUS_TRANSITIONS: Record<
+  ComplaintStatus,
+  readonly AdminSettableComplaintStatus[]
+> = {
+  open: ["in_progress", "resolved", "rejected"],
+  in_progress: ["resolved", "rejected"],
+  resolved: [],
+  rejected: [],
+};
+
+function isAdminSettableStatus(value: string): value is AdminSettableComplaintStatus {
+  return value === "in_progress" || value === "resolved" || value === "rejected";
+}
+
+function canTransitionStatus(
+  currentStatus: ComplaintStatus,
+  nextStatus: AdminSettableComplaintStatus
+): boolean {
+  return ALLOWED_STATUS_TRANSITIONS[currentStatus].includes(nextStatus);
+}
+
+export type UpdateComplaintStatusInput = {
+  clerkUserId: string;
+  complaintId: string;
+  status: string;
+  adminRemark?: string;
+};
+
+export const updateComplaintStatus_Service = async (input: UpdateComplaintStatusInput) => {
+  const { clerkUserId, complaintId: rawComplaintId, status: rawStatus, adminRemark: rawAdminRemark } =
+    input;
+
+  const actor = await resolveCurrentUser_Service({ clerkUserId });
+
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Only admins may update complaint lifecycle status",
+      { clerkUserId, role: actor.authority.role }
+    );
+  }
+
+  if (!actor.user.isActive) {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Inactive admin cannot update complaint status",
+      { clerkUserId }
+    );
+  }
+
+  if (!Types.ObjectId.isValid(rawComplaintId)) {
+    throw new ServiceError(
+      "SERVICE_INPUT_INVALID",
+      "Invalid complaint ID",
+      { complaintId: rawComplaintId }
+    );
+  }
+
+  const complaintId = new Types.ObjectId(rawComplaintId);
+
+  const complaint = await complaints_Repository.findById(complaintId);
+
+  if (!complaint) {
+    throw new ServiceError(
+      "COMPLAINT_NOT_FOUND",
+      "Complaint not found",
+      { complaintId: rawComplaintId }
+    );
+  }
+
+  if (!complaint.societyId.equals(actor.scope.society.id)) {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Complaint does not belong to this admin's society",
+      { complaintId: rawComplaintId, societyId: actor.scope.society.id }
+    );
+  }
+
+  const status = typeof rawStatus === "string" ? rawStatus.trim() : "";
+
+  if (!isAdminSettableStatus(status)) {
+    throw new ServiceError(
+      "SERVICE_INPUT_INVALID",
+      "Status must be one of: in_progress, resolved, rejected",
+      { status: rawStatus }
+    );
+  }
+
+  const currentStatus = complaint.status as ComplaintStatus;
+
+  if (!canTransitionStatus(currentStatus, status)) {
+    throw new ServiceError(
+      "INVALID_COMPLAINT_STATUS_TRANSITION",
+      "Complaint status transition is not allowed",
+      {
+        complaintId: rawComplaintId,
+        currentStatus,
+        requestedStatus: status,
+      }
+    );
+  }
+
+  const adminRemark =
+    rawAdminRemark === undefined
+      ? undefined
+      : typeof rawAdminRemark === "string"
+        ? rawAdminRemark.trim()
+        : "";
+
+  if (adminRemark !== undefined) {
+    if (!adminRemark) {
+      throw new ServiceError(
+        "SERVICE_INPUT_INVALID",
+        "Admin remark cannot be empty when provided",
+        { complaintId: rawComplaintId }
+      );
+    }
+    if (adminRemark.length > ADMIN_REMARK_MAX) {
+      throw new ServiceError(
+        "SERVICE_INPUT_INVALID",
+        `Admin remark must be at most ${ADMIN_REMARK_MAX} characters`,
+        { remarkLength: adminRemark.length }
+      );
+    }
+  }
+
+  const repoPayload: UpdateComplaintStatusRepositoryInput = {
+    complaintId,
+    status,
+    ...(adminRemark !== undefined ? { adminRemark } : {}),
+  };
+
+  if (status === "resolved") {
+    repoPayload.resolvedBy = new Types.ObjectId(actor.user.id);
+    repoPayload.resolvedAt = new Date();
+  }
+
+  const updatedComplaint = await complaints_Repository.updateStatus(repoPayload);
+
+  if (!updatedComplaint) {
+    throw new ServiceError(
+      "OPERATION_FAILED",
+      "Failed to update complaint status",
+      { complaintId: rawComplaintId }
+    );
+  }
+
+  const result = {
+    id: updatedComplaint._id.toString(),
+    status: updatedComplaint.status,
+    adminRemark: updatedComplaint.adminRemark ?? null,
+    resolvedBy: updatedComplaint.resolvedBy?.toString() ?? null,
+    resolvedAt: updatedComplaint.resolvedAt ?? null,
+  };
+
+  return result;
 };
