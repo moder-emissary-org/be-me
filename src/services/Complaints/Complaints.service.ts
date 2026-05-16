@@ -1,5 +1,12 @@
 import { COMPLAINT_CATEGORIES } from "@/models/Complaint.models.js";
 import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
+import {
+  ADMIN_REMARK_MAX,
+  canTransitionStatus,
+  parseAdminRemark,
+  parseAdminSettableStatus,
+} from "./policies/complaintStatus.policy.js";
+import type { UpdateComplaintStatusInput } from "./Types/updateComplaintStatus.types.js";
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import {
   complaints_Repository,
@@ -96,37 +103,7 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
   };
 };
 
-const ADMIN_REMARK_MAX = 2000;
-
-type AdminSettableComplaintStatus = "in_progress" | "resolved" | "rejected";
-
-const ALLOWED_STATUS_TRANSITIONS: Record<
-  ComplaintStatus,
-  readonly AdminSettableComplaintStatus[]
-> = {
-  open: ["in_progress", "resolved", "rejected"],
-  in_progress: ["resolved", "rejected"],
-  resolved: [],
-  rejected: [],
-};
-
-function isAdminSettableStatus(value: string): value is AdminSettableComplaintStatus {
-  return value === "in_progress" || value === "resolved" || value === "rejected";
-}
-
-function canTransitionStatus(
-  currentStatus: ComplaintStatus,
-  nextStatus: AdminSettableComplaintStatus
-): boolean {
-  return ALLOWED_STATUS_TRANSITIONS[currentStatus].includes(nextStatus);
-}
-
-export type UpdateComplaintStatusInput = {
-  clerkUserId: string;
-  complaintId: string;
-  status: string;
-  adminRemark?: string;
-};
+export type { UpdateComplaintStatusInput } from "./Types/updateComplaintStatus.types.js";
 
 export const updateComplaintStatus_Service = async (input: UpdateComplaintStatusInput) => {
   const { clerkUserId, complaintId: rawComplaintId, status: rawStatus, adminRemark: rawAdminRemark } =
@@ -178,9 +155,8 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     );
   }
 
-  const status = typeof rawStatus === "string" ? rawStatus.trim() : "";
-
-  if (!isAdminSettableStatus(status)) {
+  const status = parseAdminSettableStatus(rawStatus);
+  if (!status) {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       "Status must be one of: in_progress, resolved, rejected",
@@ -202,29 +178,23 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     );
   }
 
-  const adminRemark =
-    rawAdminRemark === undefined
-      ? undefined
-      : typeof rawAdminRemark === "string"
-        ? rawAdminRemark.trim()
-        : "";
-
-  if (adminRemark !== undefined) {
-    if (!adminRemark) {
+  const parsedRemark = parseAdminRemark(rawAdminRemark);
+  if ("code" in parsedRemark) {
+    if (parsedRemark.code === "ADMIN_REMARK_EMPTY") {
       throw new ServiceError(
         "SERVICE_INPUT_INVALID",
         "Admin remark cannot be empty when provided",
         { complaintId: rawComplaintId }
       );
     }
-    if (adminRemark.length > ADMIN_REMARK_MAX) {
-      throw new ServiceError(
-        "SERVICE_INPUT_INVALID",
-        `Admin remark must be at most ${ADMIN_REMARK_MAX} characters`,
-        { remarkLength: adminRemark.length }
-      );
-    }
+    throw new ServiceError(
+      "SERVICE_INPUT_INVALID",
+      `Admin remark must be at most ${ADMIN_REMARK_MAX} characters`,
+      { remarkLength: parsedRemark.remarkLength }
+    );
   }
+
+  const { adminRemark } = parsedRemark;
 
   const repoPayload: UpdateComplaintStatusRepositoryInput = {
     complaintId,

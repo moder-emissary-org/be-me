@@ -7,10 +7,13 @@ router.get("/test", (req, res) => {
   res.json({message: "Complaint router is working!"}); 
 }); 
 router.use(clerkMiddleware());
+// resident + admin
 router.post("/create", createComplaint_Controllers); 
-router.patch("/:complaintId/status", updateComplaintStatus_Controllers);
 router.get("/get", getComplaint_Controllers); 
-router.get("/get-all-complaint", listComplaints_Controllers); 
-router.delete("/delete/:id", deleteComplaint_Controllers); 
+
+// admin
+router.patch("/:complaintId/status", updateComplaintStatus_Controllers);
+router.get("/", listComplaints_Controllers); 
+router.delete("/:id/delete", deleteComplaint_Controllers); 
 
 export {router as complaintRouter}
