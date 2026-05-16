@@ -1,5 +1,8 @@
 import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
-import { createComplaint_Service } from "@/services/Complaints/Complaints.service.js";
+import {
+  createComplaint_Service,
+  updateComplaintStatus_Service,
+} from "@/services/Complaints/Complaints.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
@@ -36,13 +39,33 @@ export const getComplaint_Controllers = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Complaint details retrieved successfully" });
 });
 
-export const updateComplaint_Controllers = asyncHandler(async (req, res) => {
-  console.log("Update Complaint controller hit!");
-  // Here you would typically call a service function to update complaint details based on request parameters and body
-  // For example: const updatedComplaint = await updateComplaint_Service(req.params.id, req.body);
+export const updateComplaintStatus_Controllers = asyncHandler(async (req, res) => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to update complaint status: no authenticated user"
+    );
+  }
 
-  // For now, we'll just return a success message
-  res.status(200).json({ message: "Complaint updated successfully" });
+  const { complaintId } = req.params;
+  if (!complaintId) {
+    throw new ControllerError("BAD_REQUEST", "Complaint ID is required");
+  }
+
+  const { status, adminRemark } = req.body;
+
+  const result = await updateComplaintStatus_Service({
+    clerkUserId,
+    complaintId,
+    status,
+    adminRemark,
+  });
+
+  res.status(200).json({
+    message: "Complaint status updated successfully",
+    data: result,
+  });
 });
 
 export const deleteComplaint_Controllers = asyncHandler(async (req, res) => {
