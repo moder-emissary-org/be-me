@@ -1,6 +1,7 @@
 import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
 import {
   createComplaint_Service,
+  getComplaints_Service,
   updateComplaintStatus_Service,
 } from "@/services/Complaints/Complaints.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
@@ -77,11 +78,15 @@ export const deleteComplaint_Controllers = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Complaint deleted successfully" });
 });
 
-export const listComplaints_Controllers = asyncHandler(async (req, res) => {
-  console.log("List Complaints controller hit!");
-  // Here you would typically call a service function to list complaints, possibly with pagination and filtering based on query parameters
-  // For example: const complaints = await listComplaints_Service(req.query);
+export const getComplaints_Controllers = asyncHandler(async (req, res) => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to get all complaints: no authenticated user"
+    );
+  }
 
-  // For now, we'll just return a success message
-  res.status(200).json({ message: "Complaints listed successfully" });
+  const result = await getComplaints_Service({clerkUserId}); 
+  res.status(200).json({ message: "Complaints listed successfully", data: result });
 });
