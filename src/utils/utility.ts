@@ -4,3 +4,7 @@ export const resolveFullName = (
 ) => {
     return fullName && fullName.trim() ? fullName : email;
 };
+
+export const trimString = (value: unknown): string  => {
+    return typeof value === "string" ? value.trim() : "";
+  }
