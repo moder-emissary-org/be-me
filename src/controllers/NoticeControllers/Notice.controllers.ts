@@ -1,12 +1,26 @@
+import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { createNotice_Service } from "@/services/Notices/Notices.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
+import { getAuth } from "@clerk/express";
 
 export const createNotice_Controllers = asyncHandler( async(req, res) => {
-  console.log("Create Notice controller hit!");
-  // Here you would typically call a service function to handle the business logic of creating a notice
-  // For example: const newNotice = await createNotice_Service(req.body);
-  
-  // For now, we'll just return a success message
-  res.status(201).json({ message: "Notice created successfully" });
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to create a complaint: no authenticated user"
+    );
+  }
+
+  const {title, content} = req.body; 
+
+  const result = await createNotice_Service({
+    clerkUserId,
+    title,
+    content
+  }); 
+
+  res.status(201).json({ message: "Notice created successfully", data: result });
 });
 
 export const getNotice_Controllers = asyncHandler( async(req, res) => {
