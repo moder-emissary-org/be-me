@@ -15,6 +15,10 @@ import {
 import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js";
 import { Types } from "mongoose";
 
+//---------------------------------------------------------------------//
+//                            create service                           //
+//---------------------------------------------------------------------//
+
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 5000;
 
@@ -102,6 +106,10 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
     status: complaint.status,
   };
 };
+
+//---------------------------------------------------------------------//
+//                    update complaint status service                  //
+//---------------------------------------------------------------------//
 
 export type { UpdateComplaintStatusInput } from "./Types/updateComplaintStatus.types.js";
 
@@ -227,3 +235,38 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
 
   return result;
 };
+
+//---------------------------------------------------------------------//
+//                       list complaints service                       //
+//---------------------------------------------------------------------//
+
+export type listComplaintsServiceInput = {
+  clerkUserId: string;
+}
+
+export const getComplaints_Service = async (input: listComplaintsServiceInput) => { 
+  const { clerkUserId } = input;  
+  const actor = await resolveCurrentUser_Service({clerkUserId}); 
+
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Only admins may access society complaints",
+      { clerkUserId, role: actor.authority.role }
+    );
+  }
+
+  if (!actor.user.isActive) {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Inactive admin cannot access society complaints",
+      { clerkUserId }
+    );
+  }
+
+  const societyId = actor.scope.society.id; 
+  
+  const complaints = await complaints_Repository.findComplaintsBySocietyId(societyId);
+  
+  return complaints; 
+}

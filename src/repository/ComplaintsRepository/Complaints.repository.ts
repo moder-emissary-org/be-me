@@ -1,6 +1,6 @@
 import { Complaint } from "@/models/Complaint.models.js";
 import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 
 export type CreateComplaintRepositoryInput = {
   title: string;
@@ -56,7 +56,16 @@ export const complaints_Repository = {
       new: true,
       runValidators: true,
     });
-    
+
     return doc;
   },
+
+  findComplaintsBySocietyId: async (societyId: Types.ObjectId) => {
+    const doc = await Complaint
+      .find({ societyId })
+      .sort({ createdAt: -1 })
+      .lean();
+    console.log("list all complaints scoped by societyId:", doc ? doc : "not_found");
+    return doc;
+  }
 };

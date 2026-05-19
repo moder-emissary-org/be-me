@@ -29,7 +29,7 @@ const NoticeSchema = new Schema(
       required: true, // admin only (enforced in service)
     },
 
-    archievedAt: {
+    isArchived: {
       type: Boolean,
       default: true, // soft hide
     },

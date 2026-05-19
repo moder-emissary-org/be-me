@@ -1,4 +1,5 @@
 import type { ComplaintStatus } from "@/models/Complaint.models.js";
+import { trimString } from "@/utils/utility.js";
 
 // --- Domain policy (lifecycle rules) ---
 
@@ -24,10 +25,6 @@ export function canTransitionStatus(
 }
 
 // --- Input validation (update status pipeline) ---
-
-function trimString(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
 
 export function isAdminSettableStatus(value: string): value is AdminSettableComplaintStatus {
   return value === "in_progress" || value === "resolved" || value === "rejected";
