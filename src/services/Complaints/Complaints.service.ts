@@ -6,7 +6,7 @@ import {
   parseAdminRemark,
   parseAdminSettableStatus,
 } from "./policies/complaintStatus.policy.js";
-import type { UpdateComplaintStatusInput } from "./Types/updateComplaintStatus.types.js";
+import type { UpdateComplaintStatusInput } from "./Types/Complaints.types.js";
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import {
   complaints_Repository,
@@ -111,7 +111,7 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
 //                    update complaint status service                  //
 //---------------------------------------------------------------------//
 
-export type { UpdateComplaintStatusInput } from "./Types/updateComplaintStatus.types.js";
+export type { UpdateComplaintStatusInput } from "./Types/Complaints.types.js";
 
 export const updateComplaintStatus_Service = async (input: UpdateComplaintStatusInput) => {
   const { clerkUserId, complaintId: rawComplaintId, status: rawStatus, adminRemark: rawAdminRemark } =
@@ -229,7 +229,7 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     id: updatedComplaint._id.toString(),
     status: updatedComplaint.status,
     adminRemark: updatedComplaint.adminRemark ?? null,
-    resolvedBy: updatedComplaint.resolvedBy?.toString() ?? null,
+    resolvedBy: updatedComplaint.resolvedBy,
     resolvedAt: updatedComplaint.resolvedAt ?? null,
   };
 
@@ -242,10 +242,13 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
 
 export type listComplaintsServiceInput = {
   clerkUserId: string;
+  rawCursor: string | undefined;
 }
 
 export const getComplaints_Service = async (input: listComplaintsServiceInput) => { 
-  const { clerkUserId } = input;  
+  const { clerkUserId, rawCursor } = input; 
+  const cursor = typeof rawCursor === "string" && rawCursor.trim() !== "" ? rawCursor.trim() : undefined;
+
   const actor = await resolveCurrentUser_Service({clerkUserId}); 
 
   if (actor.authority.role !== "admin") {
@@ -266,7 +269,7 @@ export const getComplaints_Service = async (input: listComplaintsServiceInput) =
 
   const societyId = actor.scope.society.id; 
   
-  const complaints = await complaints_Repository.findComplaintsBySocietyId(societyId);
+  const complaints = await complaints_Repository.findComplaintsBySocietyId(societyId, cursor);
   
   return complaints; 
 }
