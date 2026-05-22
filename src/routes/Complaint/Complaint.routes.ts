@@ -16,7 +16,6 @@ router.use(clerkMiddleware());
 
 // resident + admin
 router.post("/create", createComplaint_Controllers); 
-router.get("/get", getComplaint_Controllers); 
 
 // admin
 router.patch("/:complaintId/status", updateComplaintStatus_Controllers);
