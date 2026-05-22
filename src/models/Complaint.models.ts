@@ -1,3 +1,4 @@
+import type { ComplaintEntity } from "@/services/Complaints/Types/Complaints.types.js";
 import mongoose, { Schema } from "mongoose";
 
 export const COMPLAINT_CATEGORIES = [
@@ -80,4 +81,4 @@ ComplaintSchema.index({ createdBy: 1, createdAt: -1 });
 
 ComplaintSchema.index({ societyId: 1, status: 1 });
 
-export const Complaint = mongoose.model("Complaint", ComplaintSchema);
+export const Complaint = mongoose.model<ComplaintEntity>("Complaint", ComplaintSchema);
