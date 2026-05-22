@@ -87,6 +87,8 @@ export const getComplaints_Controllers = asyncHandler(async (req, res) => {
     );
   }
 
-  const result = await getComplaints_Service({clerkUserId}); 
+  const rawCursor = req.query.cursor as string | undefined;
+
+  const result = await getComplaints_Service({clerkUserId, rawCursor}); 
   res.status(200).json({ message: "Complaints listed successfully", data: result });
 });
