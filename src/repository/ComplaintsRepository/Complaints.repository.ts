@@ -1,5 +1,6 @@
 import { Complaint } from "@/models/Complaint.models.js";
 import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
+import { paginate } from "@/Pagination/Pagination.service.js";
 import { Types } from "mongoose";
 
 export type CreateComplaintRepositoryInput = {
@@ -60,12 +61,17 @@ export const complaints_Repository = {
     return doc;
   },
 
-  findComplaintsBySocietyId: async (societyId: Types.ObjectId) => {
-    const doc = await Complaint
-      .find({ societyId })
-      .sort({ createdAt: -1 })
-      .lean();
-    console.log("list all complaints scoped by societyId:", doc ? doc : "not_found");
+  // paginated complaints by society id
+  findComplaintsBySocietyId: async (societyId: Types.ObjectId, cursor?: string) => {
+    const doc = await paginate({
+      model: Complaint,
+      query: { societyId },
+      limit: 5,
+      cursor: cursor,
+      cursorField: "createdAt",
+      sortOrder: -1,
+      populate: ["createdBy", "resolvedBy"],
+    });
     return doc;
   }
 };
