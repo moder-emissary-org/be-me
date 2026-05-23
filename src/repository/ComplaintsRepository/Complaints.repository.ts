@@ -1,6 +1,7 @@
 import { Complaint } from "@/models/Complaint.models.js";
 import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
 import { paginate } from "@/Pagination/Pagination.service.js";
+import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
 import { Types } from "mongoose";
 
 export type CreateComplaintRepositoryInput = {
@@ -53,12 +54,10 @@ export const complaints_Repository = {
       update.resolvedAt = resolvedAt;
     }
 
-    const doc = await Complaint.findByIdAndUpdate(complaintId, update, {
+    return await Complaint.findByIdAndUpdate(complaintId, update, {
       new: true,
       runValidators: true,
     });
-
-    return doc;
   },
 
   // paginated complaints by society id
@@ -66,12 +65,26 @@ export const complaints_Repository = {
     const doc = await paginate({
       model: Complaint,
       query: { societyId },
-      limit: 5,
+      limit: GLOBAL_PAGINATION_LIMIT,
       cursor: cursor,
       cursorField: "createdAt",
       sortOrder: -1,
       populate: ["createdBy", "resolvedBy"],
     });
     return doc;
+
+  },
+
+  findComplaintsByApartmentId: async (apartmentId: Types.ObjectId, cursor?: string) => {
+    const doc = await paginate({
+      model: Complaint,
+      query: { apartmentId },
+      limit: GLOBAL_PAGINATION_LIMIT,
+      cursor: cursor,
+      cursorField: "createdAt",
+      sortOrder: -1,
+      populate: ["resolvedBy"],
+    });
+    return doc; 
   }
 };
