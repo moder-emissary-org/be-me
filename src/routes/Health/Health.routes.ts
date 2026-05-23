@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const router: Router = Router();
 
-router.get("/health", (_req, res) => {
+router.get("/", (_req, res) => {
   const isDbConnected = mongoose.connection.readyState === 1;
 
   if (!isDbConnected) {

@@ -50,7 +50,7 @@ jobs:
       # 6. Verify health endpoint
       - name: Health check
         run: |
-          curl --fail http://localhost:8000/health
+          curl --fail http://localhost:8000//api/v1/healthcheck/
 
       # 7. Print logs on failure
       - name: Print container logs
