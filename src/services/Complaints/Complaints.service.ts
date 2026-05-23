@@ -273,3 +273,46 @@ export const getComplaints_Service = async (input: listComplaintsServiceInput) =
   
   return complaints; 
 }
+
+//---------------------------------------------------------------------//
+//                       getComplaintsByApartment service              //
+//---------------------------------------------------------------------//
+
+export type getComplaintsByApartmentInput = {
+  clerkUserId: string;
+  rawCursor: string | undefined;
+}
+
+export const getComplaintsByApartment_Service = async (input: getComplaintsByApartmentInput) => {
+  const {clerkUserId, rawCursor} = input; 
+  const actor = await resolveCurrentUser_Service({clerkUserId}); 
+
+  const role = actor.authority.role;
+  const apartmentScope = actor.scope.apartment;
+
+  if(!apartmentScope) {
+    throw new ServiceError(
+      "APARTMENT_SCOPE_INVALID",
+      "Apartment scope invalid, the actor might not have apartment.",
+      {role, apartmentScope}
+    )
+  }
+
+  const canGetComplaints =
+    (role === "resident" && apartmentScope !== null && actor.user.isActive) ||
+    (role === "admin" && apartmentScope !== null && actor.user.isActive);
+
+  if (!canGetComplaints) {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Only residents or admins assigned to an apartment may view complaints",
+      { clerkUserId, role }
+    );
+  }
+
+  const cursor = typeof rawCursor === "string" && rawCursor.trim() !== "" ? rawCursor.trim() : undefined;
+  const apartmentId = apartmentScope.id;
+
+  const complaints = await complaints_Repository.findComplaintsByApartmentId(apartmentId, cursor);
+  return complaints;
+}
