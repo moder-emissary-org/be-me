@@ -1,3 +1,4 @@
+import type { NoticeEntity } from "@/services/Notices/Types/Notices.types.js";
 import mongoose, { Schema } from "mongoose";
 
 const NoticeSchema = new Schema(
@@ -31,7 +32,7 @@ const NoticeSchema = new Schema(
 
     isArchived: {
       type: Boolean,
-      default: true, // soft hide
+      default: false, // soft hide
     },
   },
   { timestamps: true }
@@ -39,4 +40,4 @@ const NoticeSchema = new Schema(
 
 NoticeSchema.index({ societyId: 1, createdAt: -1 });
 
-export const Notice = mongoose.model("Notice", NoticeSchema);
+export const Notice = mongoose.model<NoticeEntity>("Notice", NoticeSchema);
