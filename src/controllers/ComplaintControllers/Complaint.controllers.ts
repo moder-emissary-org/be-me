@@ -3,6 +3,7 @@ import {
   createComplaint_Service,
   getComplaints_Service,
   updateComplaintStatus_Service,
+  getComplaintsByApartment_Service
 } from "@/services/Complaints/Complaints.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
@@ -31,13 +32,19 @@ export const createComplaint_Controllers = asyncHandler(async (req, res) => {
   });
 });
 
-export const getComplaint_Controllers = asyncHandler(async (req, res) => {
-  console.log("Get Complaint controller hit!");
-  // Here you would typically call a service function to retrieve complaint details based on request parameters
-  // For example: const complaint = await getComplaint_Service(req.params.id);
+export const getComplaintsByApartment_Controllers = asyncHandler(async (req, res) => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "Not authorized to update complaint status: no authenticated user"
+    );
+  }
 
-  // For now, we'll just return a success message
-  res.status(200).json({ message: "Complaint details retrieved successfully" });
+  const rawCursor = req.query.cursor as string | undefined;
+
+  const results = await getComplaintsByApartment_Service({ clerkUserId, rawCursor });
+  res.status(200).json({ message: "Complaint details retrieved successfully", data: results });
 });
 
 export const updateComplaintStatus_Controllers = asyncHandler(async (req, res) => {
@@ -89,6 +96,6 @@ export const getComplaints_Controllers = asyncHandler(async (req, res) => {
 
   const rawCursor = req.query.cursor as string | undefined;
 
-  const result = await getComplaints_Service({clerkUserId, rawCursor}); 
+  const result = await getComplaints_Service({ clerkUserId, rawCursor });
   res.status(200).json({ message: "Complaints listed successfully", data: result });
 });

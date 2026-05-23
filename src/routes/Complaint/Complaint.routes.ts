@@ -1,8 +1,8 @@
 import { 
   createComplaint_Controllers, 
   deleteComplaint_Controllers, 
-  getComplaint_Controllers, 
   getComplaints_Controllers, 
+  getComplaintsByApartment_Controllers, 
   updateComplaintStatus_Controllers 
 } from "@/controllers/ComplaintControllers/Complaint.controllers.js";
 import { clerkMiddleware } from "@clerk/express";
@@ -16,6 +16,7 @@ router.use(clerkMiddleware());
 
 // resident + admin
 router.post("/create", createComplaint_Controllers); 
+router.get("/by-apartment", getComplaintsByApartment_Controllers);
 
 // admin
 router.patch("/:complaintId/status", updateComplaintStatus_Controllers);
