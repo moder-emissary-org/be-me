@@ -5,14 +5,20 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'Readme.md'
+      - "README.md"
 
 jobs:
   build-and-boot:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
     steps:
-      # 1. Checkout source code
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,24 +27,38 @@ jobs:
         run: |
           docker build -t backend-ci .
 
-      # 3. Boot container (startup validation)
+      # 3. Run backend container
       - name: Run backend container
         run: |
           docker run -d \
+            --name backend_test \
+            -p 8000:8000 \
             -e PORT=8000 \
             -e NODE_ENV=production \
-            -e MONGODB_URI=\
-            -p 8000:8000 \
-            --name backend_test \
+            -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
             backend-ci
 
-      # 4. Basic liveness check (process did not crash)
+      # 4. Wait for app startup
+      - name: Wait for application startup
+        run: sleep 10
+
+      # 5. Verify container is running
       - name: Verify container is running
         run: |
-          sleep 5
           docker ps | grep backend_test
 
-      # 5. Cleanup
+      # 6. Verify health endpoint
+      - name: Health check
+        run: |
+          curl --fail http://localhost:8000/health
+
+      # 7. Print logs on failure
+      - name: Print container logs
+        if: failure()
+        run: |
+          docker logs backend_test
+
+      # 8. Cleanup
       - name: Stop and remove container
         if: always()
         run: |
