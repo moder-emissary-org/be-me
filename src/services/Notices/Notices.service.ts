@@ -1,6 +1,6 @@
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js";
-import type { CreateNoticeServiceInput } from "./Types/Notices.types.js";
+import type { CreateNoticeServiceInput, getNoticesServicesInput } from "./Types/Notices.types.js";
 import { NOTICE_CONTENT_MAX, NOTICE_TITLE_MAX, parseNoticeContent, parseNoticeTitle } from "./Policies/Notices.policies.js";
 import { noticesRepository } from "@/repository/NoticesRepository/Notice.repository.js";
 import { Types } from "mongoose";
@@ -119,4 +119,31 @@ export const createNotice_Service = async (input: CreateNoticeServiceInput) => {
     }
 
     return createdNotice;
+}; 
+
+export const getNotices_Service = async (input: getNoticesServicesInput) => {
+    const { clerkUserId, cursor: rawCursor } = input;
+
+    const actor = await resolveCurrentUser_Service({clerkUserId});
+    if (!actor.user.isActive || actor.authority.role !== "admin") {
+        const errCode = !actor.user.isActive ? "USER_INACTIVE" : "OPERATION_NOT_ALLOWED"; 
+        const errMessage = !actor.user.isActive 
+        ? "Inactive user cannot fetch visitors" 
+        : "Only admins can access create notice service."; 
+        throw new ServiceError(
+            errCode,
+            errMessage,
+            { clerkUserId }
+        );
+    };
+
+    const cursor = typeof rawCursor === "string" && rawCursor.trim() !== "" 
+        ? rawCursor.trim() 
+        : undefined;
+
+    const societyId = actor.scope.society.id; 
+
+    const Notices = await noticesRepository.getNoticesBySocietyId(societyId, cursor);
+    
+    return Notices;
 }
