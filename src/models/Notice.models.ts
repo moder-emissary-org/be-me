@@ -38,6 +38,6 @@ const NoticeSchema = new Schema(
   { timestamps: true }
 );
 
-NoticeSchema.index({ societyId: 1, createdAt: -1 });
+NoticeSchema.index({ societyId: 1, createdAt: -1, _id: -1 });
 
 export const Notice = mongoose.model<NoticeEntity>("Notice", NoticeSchema);
