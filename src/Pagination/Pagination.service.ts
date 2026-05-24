@@ -54,13 +54,13 @@ export interface PaginatedResult<T> {
 }
 
 const encodeCursor = (cursor: PaginationCursor): string => {
-  return Buffer.from(JSON.stringify(cursor)).toString("base64"); // prefer base64url
+  return Buffer.from(JSON.stringify(cursor)).toString("base64url"); // prefer base64url
 };
 
 const decodeCursor = (cursor: string): PaginationCursor => {
   try {
     const decoded = JSON.parse(
-      Buffer.from(cursor, "base64").toString("utf8") // prefer base64url
+      Buffer.from(cursor, "base64url").toString("utf8") // prefer base64url
     );
 
     // validation
