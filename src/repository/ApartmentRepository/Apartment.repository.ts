@@ -1,5 +1,8 @@
 import { Apartment } from "@/models/Apartment.models.js";
 import type { ClientSession, Types } from "mongoose";
+import { paginate } from "@/Pagination/Pagination.service.js";
+import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
+import type { findApartmentsBySocietyIdRepoInput } from "@/services/Apartment/Types/Apartment.Types.js";
 
 interface CreateOptions {
   session?: ClientSession;
@@ -26,4 +29,15 @@ export const ApartmentRepository_Repository = {
       return doc;
     */
   },
+  findApartmentsBySocietyId: async (input: findApartmentsBySocietyIdRepoInput) => {
+    const { societyId, cursor } = input;
+    return await paginate({
+      model: Apartment,
+      query: { societyId },
+      limit: GLOBAL_PAGINATION_LIMIT,
+      cursor,
+      cursorField: "createdAt",
+      sortOrder: -1,
+    });
+  }
 }               

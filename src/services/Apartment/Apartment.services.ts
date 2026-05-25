@@ -4,6 +4,8 @@ import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindA
 import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js"
 import { isMongoDuplicateError } from "@/utils/MongoErrors.utils.js"
 import type { Types } from "mongoose"
+import type { getApartmentsBySocietyServiceInput } from "./Types/Apartment.Types.js"
+import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js"
 
 interface CreateApartmentInput {
   apartmentCode: string
@@ -84,9 +86,36 @@ export const BulkCreateApartments_Service = async () => {
   console.log("Bulk create apartments service called")
 }
 
-//un-implemented
-export const ListApartments_Service = async () => {
-  console.log("List apartments service called")
+export const getApartmentsBySociety_Service = async (input: getApartmentsBySocietyServiceInput) => {
+  const { clerkUserId, cursor: rawCursor } = input;
+
+  const actor = await resolveCurrentUser_Service({ clerkUserId });
+
+  if (actor.authority.role !== "admin" || !actor.user.isActive) {
+    const errCode = !actor.user.isActive 
+    ? "USER_INACTIVE" 
+    : "OPERATION_NOT_ALLOWED";
+    const errMessage = !actor.user.isActive 
+      ? "Inactive user cannot fetch apartments"
+      : "Only admin is allowed to fetch apartments."; 
+    throw new ServiceError(
+      errCode,
+      errMessage,
+      { clerkUserId }
+    ); 
+  }
+
+  const cursor = 
+    typeof rawCursor === "string" && rawCursor.trim() !== "" 
+    ? rawCursor 
+    : undefined;
+
+  const societyId = actor.scope.society.id;
+
+  const apartments = 
+    await ApartmentRepository_Repository.findApartmentsBySocietyId({societyId, cursor});
+
+  return apartments;
 }
 
 //un-implemented

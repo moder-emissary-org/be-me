@@ -1,5 +1,5 @@
 import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
-import { createApartment_Service } from "@/services/Apartment/Apartment.services.js";
+import { createApartment_Service, getApartmentsBySociety_Service } from "@/services/Apartment/Apartment.services.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
 
@@ -36,9 +36,13 @@ export const CreateApartment_Controllers = asyncHandler(async (req, res) => {
     .json({ message: "Apartment created successfully.", apartment }); 
 }); 
 
-export const GetApartment_Controllers = asyncHandler(async (req, res) => {
-  console.log("Get Apartment controllers hit!");
-  // Implement logic to retrieve apartment details based on request parameters
+export const getApartments_Controllers = asyncHandler(async (req, res) => {
+  const { clerkUserId } = req.actor!; 
+  const cursor = req.query.cursor as string | undefined;
+  const apartments = await getApartmentsBySociety_Service({ clerkUserId, cursor });
+
+  return res.status(200).json({ message: "Apartments retrieved successfully.", apartments });
+
 });
 
 export const UpdateApartment_Controllers = asyncHandler(async (req, res) => {
@@ -49,11 +53,6 @@ export const UpdateApartment_Controllers = asyncHandler(async (req, res) => {
 export const DeleteApartment_Controllers = asyncHandler(async (req, res) => {
   console.log("Delete Apartment controllers hit!");
   // Implement logic to delete an apartment based on request parameters
-});
-
-export const ListApartments_Controllers = asyncHandler(async (req, res) => {
-  console.log("List Apartments controllers hit!");
-  // Implement logic to list apartments, possibly with pagination and filtering based on query parameters
 });
 
 export const BulkCreateApartments_Controllers = asyncHandler(async (req, res) => {
