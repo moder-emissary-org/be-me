@@ -1,15 +1,7 @@
-import mongoose, { Schema, Types } from "mongoose";
+import type { ApartmentEntity } from "@/services/Apartment/Types/Apartment.Types.js";
+import mongoose, { Schema } from "mongoose";
 
-
-export interface ApartmentDocument {
-  apartmentCode: string;
-  societyId: Types.ObjectId;
-  towerLabel: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const ApartmentSchema = new Schema<ApartmentDocument>(
+const ApartmentSchema = new Schema(
   {
     apartmentCode: {
       type: String,
@@ -29,10 +21,20 @@ const ApartmentSchema = new Schema<ApartmentDocument>(
   { timestamps: true }
 );
 
-// This brings the unique constraint to the combination of societyId and apartmentCode, allowing the same apartmentCode to exist in different societies but not duplicate within the same society at DB level.
+/**
+ * This brings the unique constraint to the combination of societyId and apartmentCode, 
+ * allowing the same apartmentCode to exist in different societies but not duplicate within the same society at DB level.
+ */
 ApartmentSchema.index(
   {societyId: 1, apartmentCode: 1},
   { unique: true }
-)
+); 
 
-export const Apartment = mongoose.model<ApartmentDocument>("Apartment", ApartmentSchema);
+// for efficient pagination of apartments within a society. 
+ApartmentSchema.index({
+  societyId: 1,
+  createdAt: -1,
+  _id: -1,
+});
+
+export const Apartment = mongoose.model<ApartmentEntity>("Apartment", ApartmentSchema);
