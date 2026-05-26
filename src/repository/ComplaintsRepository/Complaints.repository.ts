@@ -1,29 +1,15 @@
 import { Complaint } from "@/models/Complaint.models.js";
-import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
+import type {
+  ComplaintCategory,
+  ComplaintStatus,
+} from "@/models/Complaint.models.js";
 import { paginate } from "@/Pagination/Pagination.service.js";
+import type {
+  CreateComplaintRepositoryInput,
+  UpdateComplaintStatusRepositoryInput,
+} from "@/services/Complaints/Types/Complaints.types.js";
 import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
 import { Types } from "mongoose";
-
-export type CreateComplaintRepositoryInput = {
-  title: string;
-  description: string;
-  category: ComplaintCategory;
-  status: ComplaintStatus;
-  societyId: Types.ObjectId;
-  apartmentId: Types.ObjectId;
-  createdBy: Types.ObjectId;
-  resolvedBy: null;
-  resolvedAt: null;
-  adminRemark: null;
-};
-
-export type UpdateComplaintStatusRepositoryInput = {
-  complaintId: Types.ObjectId;
-  status: ComplaintStatus;
-  adminRemark?: string;
-  resolvedBy?: Types.ObjectId;
-  resolvedAt?: Date;
-};
 
 export const complaints_Repository = {
   create: async (payload: CreateComplaintRepositoryInput) => {
@@ -61,7 +47,10 @@ export const complaints_Repository = {
   },
 
   // paginated complaints by society id
-  findComplaintsBySocietyId: async (societyId: Types.ObjectId, cursor?: string) => {
+  findComplaintsBySocietyId: async (
+    societyId: Types.ObjectId,
+    cursor?: string,
+  ) => {
     const doc = await paginate({
       model: Complaint,
       query: { societyId },
@@ -72,10 +61,12 @@ export const complaints_Repository = {
       populate: ["createdBy", "resolvedBy"],
     });
     return doc;
-
   },
 
-  findComplaintsByApartmentId: async (apartmentId: Types.ObjectId, cursor?: string) => {
+  findComplaintsByApartmentId: async (
+    apartmentId: Types.ObjectId,
+    cursor?: string,
+  ) => {
     const doc = await paginate({
       model: Complaint,
       query: { apartmentId },
@@ -85,6 +76,6 @@ export const complaints_Repository = {
       sortOrder: -1,
       populate: ["resolvedBy"],
     });
-    return doc; 
-  }
+    return doc;
+  },
 };
