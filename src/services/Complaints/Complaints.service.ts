@@ -1,5 +1,8 @@
 import { COMPLAINT_CATEGORIES } from "@/models/Complaint.models.js";
-import type { ComplaintCategory, ComplaintStatus } from "@/models/Complaint.models.js";
+import type {
+  ComplaintCategory,
+  ComplaintStatus,
+} from "@/models/Complaint.models.js";
 import {
   ADMIN_REMARK_MAX,
   canTransitionStatus,
@@ -34,8 +37,12 @@ function isComplaintCategory(value: string): value is ComplaintCategory {
 }
 
 export const createComplaint_Service = async (input: CreateComplaintInput) => {
-  const { clerkUserId, title: rawTitle, description: rawDescription, category: rawCategory } =
-    input;
+  const {
+    clerkUserId,
+    title: rawTitle,
+    description: rawDescription,
+    category: rawCategory,
+  } = input;
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
 
@@ -50,7 +57,7 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Only residents or admins assigned to an apartment may create complaints",
-      { clerkUserId, role }
+      { clerkUserId, role },
     );
   }
 
@@ -58,14 +65,15 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
   const apartmentId = apartmentScope!.id;
 
   const title = typeof rawTitle === "string" ? rawTitle.trim() : "";
-  const description = typeof rawDescription === "string" ? rawDescription.trim() : "";
+  const description =
+    typeof rawDescription === "string" ? rawDescription.trim() : "";
   const category = typeof rawCategory === "string" ? rawCategory.trim() : "";
 
   if (!title || title.length > TITLE_MAX) {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       `Title is required and must be at most ${TITLE_MAX} characters`,
-      { titleLength: title.length }
+      { titleLength: title.length },
     );
   }
 
@@ -73,7 +81,7 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       `Description is required and must be at most ${DESCRIPTION_MAX} characters`,
-      { descriptionLength: description.length }
+      { descriptionLength: description.length },
     );
   }
 
@@ -81,7 +89,7 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       "Invalid complaint category",
-      { category }
+      { category },
     );
   }
 
@@ -113,9 +121,15 @@ export const createComplaint_Service = async (input: CreateComplaintInput) => {
 
 export type { UpdateComplaintStatusInput } from "./Types/Complaints.types.js";
 
-export const updateComplaintStatus_Service = async (input: UpdateComplaintStatusInput) => {
-  const { clerkUserId, complaintId: rawComplaintId, status: rawStatus, adminRemark: rawAdminRemark } =
-    input;
+export const updateComplaintStatus_Service = async (
+  input: UpdateComplaintStatusInput,
+) => {
+  const {
+    clerkUserId,
+    complaintId: rawComplaintId,
+    status: rawStatus,
+    adminRemark: rawAdminRemark,
+  } = input;
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
 
@@ -123,7 +137,7 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Only admins may update complaint lifecycle status",
-      { clerkUserId, role: actor.authority.role }
+      { clerkUserId, role: actor.authority.role },
     );
   }
 
@@ -131,16 +145,14 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Inactive admin cannot update complaint status",
-      { clerkUserId }
+      { clerkUserId },
     );
   }
 
   if (!Types.ObjectId.isValid(rawComplaintId)) {
-    throw new ServiceError(
-      "SERVICE_INPUT_INVALID",
-      "Invalid complaint ID",
-      { complaintId: rawComplaintId }
-    );
+    throw new ServiceError("SERVICE_INPUT_INVALID", "Invalid complaint ID", {
+      complaintId: rawComplaintId,
+    });
   }
 
   const complaintId = new Types.ObjectId(rawComplaintId);
@@ -148,18 +160,16 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
   const complaint = await complaints_Repository.findById(complaintId);
 
   if (!complaint) {
-    throw new ServiceError(
-      "COMPLAINT_NOT_FOUND",
-      "Complaint not found",
-      { complaintId: rawComplaintId }
-    );
+    throw new ServiceError("COMPLAINT_NOT_FOUND", "Complaint not found", {
+      complaintId: rawComplaintId,
+    });
   }
 
   if (!complaint.societyId.equals(actor.scope.society.id)) {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Complaint does not belong to this admin's society",
-      { complaintId: rawComplaintId, societyId: actor.scope.society.id }
+      { complaintId: rawComplaintId, societyId: actor.scope.society.id },
     );
   }
 
@@ -168,7 +178,7 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       "Status must be one of: in_progress, resolved, rejected",
-      { status: rawStatus }
+      { status: rawStatus },
     );
   }
 
@@ -182,7 +192,7 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
         complaintId: rawComplaintId,
         currentStatus,
         requestedStatus: status,
-      }
+      },
     );
   }
 
@@ -192,13 +202,13 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
       throw new ServiceError(
         "SERVICE_INPUT_INVALID",
         "Admin remark cannot be empty when provided",
-        { complaintId: rawComplaintId }
+        { complaintId: rawComplaintId },
       );
     }
     throw new ServiceError(
       "SERVICE_INPUT_INVALID",
       `Admin remark must be at most ${ADMIN_REMARK_MAX} characters`,
-      { remarkLength: parsedRemark.remarkLength }
+      { remarkLength: parsedRemark.remarkLength },
     );
   }
 
@@ -215,13 +225,14 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
     repoPayload.resolvedAt = new Date();
   }
 
-  const updatedComplaint = await complaints_Repository.updateStatus(repoPayload);
+  const updatedComplaint =
+    await complaints_Repository.updateStatus(repoPayload);
 
   if (!updatedComplaint) {
     throw new ServiceError(
       "OPERATION_FAILED",
       "Failed to update complaint status",
-      { complaintId: rawComplaintId }
+      { complaintId: rawComplaintId },
     );
   }
 
@@ -243,19 +254,24 @@ export const updateComplaintStatus_Service = async (input: UpdateComplaintStatus
 export type listComplaintsServiceInput = {
   clerkUserId: string;
   rawCursor: string | undefined;
-}
+};
 
-export const getComplaints_Service = async (input: listComplaintsServiceInput) => { 
-  const { clerkUserId, rawCursor } = input; 
-  const cursor = typeof rawCursor === "string" && rawCursor.trim() !== "" ? rawCursor.trim() : undefined;
+export const getComplaints_Service = async (
+  input: listComplaintsServiceInput,
+) => {
+  const { clerkUserId, rawCursor } = input;
+  const cursor =
+    typeof rawCursor === "string" && rawCursor.trim() !== ""
+      ? rawCursor.trim()
+      : undefined;
 
-  const actor = await resolveCurrentUser_Service({clerkUserId}); 
+  const actor = await resolveCurrentUser_Service({ clerkUserId });
 
   if (actor.authority.role !== "admin") {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Only admins may access society complaints",
-      { clerkUserId, role: actor.authority.role }
+      { clerkUserId, role: actor.authority.role },
     );
   }
 
@@ -263,16 +279,19 @@ export const getComplaints_Service = async (input: listComplaintsServiceInput) =
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Inactive admin cannot access society complaints",
-      { clerkUserId }
+      { clerkUserId },
     );
   }
 
-  const societyId = actor.scope.society.id; 
-  
-  const complaints = await complaints_Repository.findComplaintsBySocietyId(societyId, cursor);
-  
-  return complaints; 
-}
+  const societyId = actor.scope.society.id;
+
+  const complaints = await complaints_Repository.findComplaintsBySocietyId(
+    societyId,
+    cursor,
+  );
+
+  return complaints;
+};
 
 //---------------------------------------------------------------------//
 //                       getComplaintsByApartment service              //
@@ -281,21 +300,23 @@ export const getComplaints_Service = async (input: listComplaintsServiceInput) =
 export type getComplaintsByApartmentInput = {
   clerkUserId: string;
   rawCursor: string | undefined;
-}
+};
 
-export const getComplaintsByApartment_Service = async (input: getComplaintsByApartmentInput) => {
-  const {clerkUserId, rawCursor} = input; 
-  const actor = await resolveCurrentUser_Service({clerkUserId}); 
+export const getComplaintsByApartment_Service = async (
+  input: getComplaintsByApartmentInput,
+) => {
+  const { clerkUserId, rawCursor } = input;
+  const actor = await resolveCurrentUser_Service({ clerkUserId });
 
   const role = actor.authority.role;
   const apartmentScope = actor.scope.apartment;
 
-  if(!apartmentScope) {
+  if (!apartmentScope) {
     throw new ServiceError(
       "APARTMENT_SCOPE_INVALID",
       "Apartment scope invalid, the actor might not have apartment.",
-      {role, apartmentScope}
-    )
+      { role, apartmentScope },
+    );
   }
 
   const canGetComplaints =
@@ -306,13 +327,19 @@ export const getComplaintsByApartment_Service = async (input: getComplaintsByApa
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "Only residents or admins assigned to an apartment may view complaints",
-      { clerkUserId, role }
+      { clerkUserId, role },
     );
   }
 
-  const cursor = typeof rawCursor === "string" && rawCursor.trim() !== "" ? rawCursor.trim() : undefined;
+  const cursor =
+    typeof rawCursor === "string" && rawCursor.trim() !== ""
+      ? rawCursor.trim()
+      : undefined;
   const apartmentId = apartmentScope.id;
 
-  const complaints = await complaints_Repository.findComplaintsByApartmentId(apartmentId, cursor);
+  const complaints = await complaints_Repository.findComplaintsByApartmentId(
+    apartmentId,
+    cursor,
+  );
   return complaints;
-}
+};
