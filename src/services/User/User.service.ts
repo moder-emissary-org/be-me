@@ -1,15 +1,11 @@
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
-import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js";
-import { UserRepository_Repository } from "@/repository/UserRepository/UserRepository.repository.js";
-import { UpdateUser_Repository } from "@/repository/UserRepository/UpdateUser.repository.js";
 import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
-import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindApartment.repository.js";
-import {
-  ClerkIdentityProvider_Service
-} from "@/services/Identity/IdentityProvider.service.js";
+import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
 import mongoose, { Types } from "mongoose";
 import { InvitationRepository } from "@/repository/InvitationRepository/Invitation.Repository.js";
 import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkError.js";
+import { userRepository } from "@/repository/UserRepository/User.repository.js";
+import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
 
 // --- Invite User (Clerk invitation; no DB write) ---
 
@@ -53,7 +49,7 @@ export const inviteUser_Service = async (
     );
   }
 
-  const adminUser = await findUserByID_Repository.findByClerkUserId(invitedBy);
+  const adminUser = await userRepository.findByClerkUserId(invitedBy);
   if (!adminUser) {
     throw new ServiceError(
       "ADMIN_NOT_FOUND",
@@ -171,7 +167,7 @@ export const createUserFromClerkWebhook_Service = async (
 ): Promise<{ created: boolean }> => {
   const { clerkUserId, email } = input;
 
-  const existing = await findUserByID_Repository.findByClerkUserId(clerkUserId);
+  const existing = await userRepository.findByClerkUserId(clerkUserId);
   if (existing) {
     return { created: false }
   };
@@ -221,7 +217,7 @@ export const createUserFromClerkWebhook_Service = async (
   console.log("DB NAME:", mongoose.connection.name);
   console.log("DB HOST:", mongoose.connection.host);
 
-  const result = await UserRepository_Repository.createUserThroughSession(
+  const result = await userRepository.createUserThroughSession(
     {
       clerkUserId,
       email,
@@ -250,7 +246,7 @@ export const assignUserToApartment_Service = async (
 ): Promise<{ success: true }> => {
   const { userId, apartmentId, requestedBy } = input;
 
-  const adminUser = await findUserByID_Repository.findByClerkUserId(requestedBy);
+  const adminUser = await userRepository.findByClerkUserId(requestedBy);
   if (!adminUser) {
     throw new ServiceError(
       "USER_NOT_FOUND",
@@ -275,7 +271,7 @@ export const assignUserToApartment_Service = async (
     });
   }
 
-  const targetUser = await findUserByID_Repository.findById(userId);
+  const targetUser = await userRepository.findById(userId);
   if (!targetUser) {
     throw new ServiceError(
       "USER_NOT_FOUND", 
@@ -299,7 +295,7 @@ export const assignUserToApartment_Service = async (
     );
   }
 
-  const apartment = await FindApartment_Repository.findById(apartmentId);
+  const apartment = await apartmentRepository.findById(apartmentId);
   if (!apartment) {
     throw new ServiceError("APARTMENT_NOT_FOUND", "Apartment not found", {
       apartmentId,
@@ -314,7 +310,7 @@ export const assignUserToApartment_Service = async (
     );
   }
 
-  await UpdateUser_Repository.updateApartmentForUser(userId, apartment._id);
+  await userRepository.updateApartmentForUser(userId, apartment._id);
 
   return { success: true };
 };
