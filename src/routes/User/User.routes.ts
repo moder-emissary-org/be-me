@@ -6,7 +6,6 @@ import {
   inviteUser_Controller,
   assignUserToApartment_Controller,
 } from "@/controllers/UserControllers/User.controller.js";
-import { bootstrapUser_Controllers } from "@/controllers/UserControllers/BootstrapUser.controller.js";
 
 const router: Router = Router();
 router.get("/test", (req, res) => {
@@ -16,8 +15,6 @@ router.get("/test", (req, res) => {
 router.use(clerkMiddleware());
 
 router.get("/me", getCurrentUser_Controllers);
-
-router.post("/bootstrap", bootstrapUser_Controllers);
 
 // (admin) – Clerk invitation
 router.post("/invite", inviteUser_Controller);

@@ -8,14 +8,14 @@ interface CreateOptions {
   session?: ClientSession;
 }
 
-export const ApartmentRepository_Repository = {
+export const apartmentRepository = {
   create: async (
     data: {
       apartmentCode: string;
       towerLabel?: string;
-      societyId: Types.ObjectId
+      societyId: Types.ObjectId;
     },
-    options?: CreateOptions
+    options?: CreateOptions,
   ): Promise<any> => {
     const createOptions = options?.session
       ? { session: options.session }
@@ -39,5 +39,14 @@ export const ApartmentRepository_Repository = {
       cursorField: "createdAt",
       sortOrder: -1,
     });
-  }
-}               
+  },
+  findById: async (id: Types.ObjectId | string) => {
+    return await Apartment.findById(id).lean();
+  },
+  findBySocietyIdAndApartmentCode: async (
+    societyId: Types.ObjectId,
+    apartmentCode: string,
+  ) => {
+    return await Apartment.findOne({ societyId, apartmentCode }).lean();
+  },
+};

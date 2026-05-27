@@ -1,7 +1,7 @@
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import { SystemError } from "@/error/SystemError/System.Error.js";
 import { societyRepository_Repository } from "@/repository/SocietyRepository/Society.repository.js";
-import { UserRepository_Repository } from "@/repository/UserRepository/UserRepository.repository.js";
+import { userRepository } from "@/repository/UserRepository/User.repository.js";
 import mongoose from "mongoose";
 
 interface BootstrapInput {
@@ -49,7 +49,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       );
     }
 
-    const adminUser = await UserRepository_Repository.createUserThroughSession(
+    const adminUser = await userRepository.createUserThroughSession(
       {
         clerkUserId: input.clerkUserId,
         role: "admin",
