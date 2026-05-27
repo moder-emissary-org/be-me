@@ -9,11 +9,10 @@ import {
   parseAdminRemark,
   parseAdminSettableStatus,
 } from "./policies/complaintStatus.policy.js";
-import type { UpdateComplaintStatusInput } from "./Types/Complaints.types.js";
+import type { UpdateComplaintStatusInput, UpdateComplaintStatusRepositoryInput } from "./Types/Complaints.types.js";
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
 import {
-  complaints_Repository,
-  type UpdateComplaintStatusRepositoryInput,
+  complaints_Repository
 } from "@/repository/ComplaintsRepository/Complaints.repository.js";
 import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js";
 import { Types } from "mongoose";
