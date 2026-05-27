@@ -1,8 +1,4 @@
 import { Complaint } from "@/models/Complaint.models.js";
-import type {
-  ComplaintCategory,
-  ComplaintStatus,
-} from "@/models/Complaint.models.js";
 import { paginate } from "@/Pagination/Pagination.service.js";
 import type {
   CreateComplaintRepositoryInput,
