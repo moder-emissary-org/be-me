@@ -1,8 +1,7 @@
 import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
-import { FindApartment_Repository } from "@/repository/ApartmentRepository/FindApartment.repository.js";
+import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
 import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
-import { findUserByID_Repository } from "@/repository/UserRepository/FindUser.repository.js";
-import { Types } from "mongoose";
+import { userRepository } from "@/repository/UserRepository/User.repository.js";
 
 // This service is responsible for resolving the current user's details, including their associated society and apartment information, based on their Clerk user ID. It is used in the GetCurrentUser controller to provide a comprehensive user profile for the frontend application.
 
@@ -11,7 +10,7 @@ export const resolveCurrentUser_Service = async ({
 }: {
   clerkUserId: string;
 }) => {
-  const user = await findUserByID_Repository.findByClerkUserId(clerkUserId);  
+  const user = await userRepository.findByClerkUserId(clerkUserId);  
   if (!user || !user.isActive) {
     throw new ServiceError(
       "USER_NOT_FOUND",
@@ -30,7 +29,7 @@ export const resolveCurrentUser_Service = async ({
   }
 
   const apartment = user.apartmentId
-    ? await FindApartment_Repository.findById(user.apartmentId)
+    ? await apartmentRepository.findById(user.apartmentId)
     : null;
 
   return {
