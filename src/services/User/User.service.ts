@@ -6,8 +6,14 @@ import { InvitationRepository } from "@/repository/InvitationRepository/Invitati
 import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkError.js";
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
 import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
+import { resolveCurrentUser_Service } from "./resolveCurrentUserService.service.js";
+import type { getUsersBySocietyServiceInput } from "./Types/User.types.js";
 
-// --- Invite User (Clerk invitation; no DB write) ---
+
+//---------------------------------------------------------------------//
+//         - Invite User (Clerk invitation; no DB write) -             //
+//                        inviteUser_Service                           //
+//---------------------------------------------------------------------//
 
 export interface InviteUserInput {
   email: string;
@@ -58,19 +64,15 @@ export const inviteUser_Service = async (
     );
   }
 
-  if (adminUser.role !== "admin") {
+  if (!adminUser.isActive || adminUser.role !== "admin") {
+    const errCode = !adminUser.isActive ? "USER_INACTIVE" : "ADMIN_NOT_FOUND";
+    const errMessage = !adminUser.isActive
+      ? "Admin account is inactive | from inviteUser_Service"
+      : "Unauthorized operation: user is not an admin | from inviteUser_Service";
     throw new ServiceError(
-      "OPERATION_NOT_ALLOWED",
-      "Unauthorized operation | from inviteUser_Service",
+      errCode,
+      errMessage,
       { role: adminUser.role },
-    );
-  }
-
-  if (!adminUser.isActive) {
-    throw new ServiceError(
-      "OPERATION_NOT_ALLOWED",
-      "Unauthorized operation | from inviteUser_Service",
-      { reason: "Admin disabled" },
     );
   }
 
@@ -83,17 +85,25 @@ export const inviteUser_Service = async (
     );
   }
 
-  // why this is not correct? we want to prevent duplicate invitations, right?
-  // this is vulnerable because checking for existing invitation is not fit for race conditions: if two invitations are sent at the same time, both will pass the check and create duplicate invitations. we need to rely on the database unique constraint to prevent duplicates, and handle that error gracefully.
-  // so that is why we removed this check and instead handle the duplicate key error when trying to create the invitation in the database. this way, we can ensure that even if multiple requests come in at the same time, only one will succeed and the others will receive a clear error message about the duplicate invitation.
-  // const existingInvitation = await InvitationRepository.findPendingByEmail(email);
-  // if (existingInvitation) {
-  //   throw new ServiceError(
-  //     "INVITATION_ALREADY_EXISTS",
-  //     "User already invited | from inviteUser_Service",
-  //     { email }
-  //   );
-  // }
+  /**
+   * why this is not correct? we want to prevent duplicate invitations, right?
+   * this is vulnerable because checking for existing invitation is not fit for race conditions: 
+   * if two invitations are sent at the same time, 
+   * both will pass the check and create duplicate invitations. 
+   * we need to rely on the database unique constraint to prevent duplicates, and handle that error gracefully.
+   * so that is why we removed this check and instead handle the duplicate key error when trying to create the invitation in the database. 
+   * this way, we can ensure that even if multiple requests come in at the same time,
+   * only one will succeed and the others will receive a clear error message about the duplicate invitation.
+   */
+  /**
+   *  const existingInvitation = await InvitationRepository.findPendingByEmail(email);if (existingInvitation) {
+   *     throw new ServiceError(
+   *        "INVITATION_ALREADY_EXISTS",
+   *        "User already invited | from inviteUser_Service",
+   *        { email }
+   *      );
+   *   }
+   */
 
   try {
     await InvitationRepository.create({
@@ -155,7 +165,9 @@ export const inviteUser_Service = async (
   };
 };
 
-// --- Create User from Clerk user.created webhook ---
+//---------------------------------------------------------------------//
+//           Create User from Clerk user.created webhook               //
+//---------------------------------------------------------------------//
 
 export interface CreateUserFromClerkWebhookInput {
   clerkUserId: string;
@@ -172,12 +184,14 @@ export const createUserFromClerkWebhook_Service = async (
     return { created: false }
   };
 
-  console.log("existing check passed")
+  console.log("existing check passed.");
 
   const invitation = await InvitationRepository.findPendingByEmail(email);
   if (!invitation) {
     return { created: false };
   };
+
+  console.log("Invitation check passed.");
 
   const { role, societyId } = invitation;
   if (!societyId || !role) {
@@ -196,7 +210,7 @@ export const createUserFromClerkWebhook_Service = async (
     );
   };
 
-  console.log("role check passed");
+  console.log("role check passed.");
 
   const society = await FindSociety_repository.findById(societyId);
   if (!society) {
@@ -207,33 +221,28 @@ export const createUserFromClerkWebhook_Service = async (
     );
   }
 
-  console.log("society check passed")
+  console.log("society check passed.")
 
   const { getProfile } = ClerkIdentityProvider_Service;
   const profile = await getProfile(clerkUserId);
   const fullName = profile.fullName || email;
 
-  console.log("successfull full name extraction from indetity provider: ", fullName);
-  console.log("DB NAME:", mongoose.connection.name);
-  console.log("DB HOST:", mongoose.connection.host);
-
-  const result = await userRepository.createUserThroughSession(
-    {
-      clerkUserId,
-      email,
-      fullName,
-      role,
-      societyId: society._id,
-      apartmentId: null,
-      isActive: true,
-    }
-  );
-  console.log("createUserFromClerkWebhook_Service result:", result)
+  await userRepository.createUserThroughSession({
+    clerkUserId,
+    email,
+    fullName,
+    role,
+    societyId: society._id,
+    apartmentId: null,
+    isActive: true,
+  });
 
   return { created: true };
 };
 
-// --- Assign User to Apartment (membership) ---
+//---------------------------------------------------------------------//
+//               Assign User to Apartment (membership)                 //
+//---------------------------------------------------------------------//
 
 export interface AssignUserToApartmentInput {
   userId: string;
@@ -257,7 +266,7 @@ export const assignUserToApartment_Service = async (
 
   if (adminUser.role !== "admin") {
     throw new ServiceError(
-      "OPERATION_NOT_ALLOWED", 
+      "OPERATION_NOT_ALLOWED",
       "Unauthorized operation | from assignUserToApartment_Service", {
       role: adminUser.role,
     });
@@ -265,23 +274,23 @@ export const assignUserToApartment_Service = async (
 
   if (!adminUser.isActive) {
     throw new ServiceError(
-      "OPERATION_NOT_ALLOWED", 
+      "OPERATION_NOT_ALLOWED",
       "Unauthorized operation | from assignUserToApartment_Service", {
-      reason: "Admin disabled",
+      reason: "Admin inactive",
     });
   }
 
   const targetUser = await userRepository.findById(userId);
   if (!targetUser) {
     throw new ServiceError(
-      "USER_NOT_FOUND", 
+      "USER_NOT_FOUND",
       "User not found | from assignUserToApartment_Service", { userId }
     );
   }
 
   if (!targetUser.isActive) {
     throw new ServiceError(
-      "OPERATION_NOT_ALLOWED", 
+      "OPERATION_NOT_ALLOWED",
       "User is not active | from assignUserToApartment_Service", {
       userId,
     });
@@ -313,4 +322,33 @@ export const assignUserToApartment_Service = async (
   await userRepository.updateApartmentForUser(userId, apartment._id);
 
   return { success: true };
+};
+
+// export const getUsersBySociety_Service = async ({clerkUserId}: { clerkUserId: string }) => {
+export const getUsersBySociety_Service = async (input: getUsersBySocietyServiceInput) => {
+  const { clerkUserId, cursor: rawCursor } = input;
+
+  const actor = await resolveCurrentUser_Service({ clerkUserId });
+
+  /**
+   * isActive check is native to its own service, 
+   * so we can be sure that if we get here, the user is active.
+   * so no need to check for isActive again here.
+   * same for all dependent services that rely on resolveCurrentUser_Service.
+   */
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "INSUFFICIENT_PERMISSIONS",
+      "Admin access required",
+      { role: actor.authority.role }
+    );
+  }
+
+  const cursor = typeof rawCursor === "string" ? rawCursor : "";
+
+  const societyId = actor.scope.society.id;
+
+  const users = await userRepository.findUsersBySocietyId({ societyId, cursor });
+  
+  return users;
 };
