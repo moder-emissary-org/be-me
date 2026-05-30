@@ -25,7 +25,7 @@ export const createNotice_Controllers = asyncHandler(async (req, res) => {
 
 export const getNotices_Controllers = asyncHandler(async (req, res) => {
   /**
-   * Herewe aare trying to test the custom middleware that adds req.actor with clerkUserId, 
+   * Here we are trying to test the custom middleware that adds req.actor with clerkUserId, 
    * so we will use that instead of calling getAuth again here. 
    * This is to ensure that our middleware is working as expected and req.actor is populated correctly.
    * const { userId: clerkUserId } = getAuth(req);
@@ -33,15 +33,19 @@ export const getNotices_Controllers = asyncHandler(async (req, res) => {
    *  throw new ControllerError(
    *   "UNAUTHORIZED",
    *   "Not authorized to create a complaint: no authenticated user"
-   * );
-   * }
+   * )};
    */
 
   const { clerkUserId } = req.actor!; // Using the clerkUserId from our custom middleware
 
   const cursor = req.query.cursor as string | undefined;
+
   const results = await getNotices_Service({ clerkUserId, cursor });
-  res.status(200).json({ message: "Notice details retrieved successfully", data: results });
+
+  res.status(200).json({
+    message: "Notice details retrieved successfully",
+    data: results
+  });
 });
 
 export const updateNotice_Controllers = asyncHandler(async (req, res) => {
