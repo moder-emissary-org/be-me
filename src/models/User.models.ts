@@ -1,3 +1,4 @@
+import type { UserEntity } from "@/services/User/Types/User.types.js";
 import mongoose, { Schema } from "mongoose";
 
 const UserSchema = new Schema(
@@ -41,4 +42,28 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-export const User = mongoose.model("User", UserSchema);
+// normal queries by society with createdAt desc
+UserSchema.index({ societyId: 1, createdAt: -1 });
+
+// role by filtering
+UserSchema.index({
+  societyId: 1,
+  role: 1,
+  createdAt: -1,
+});
+
+// apartment by filtering
+UserSchema.index({
+  societyId: 1,
+  apartmentId: 1,
+  createdAt: -1,
+});
+
+// active users by filtering (eg. for sending notifications to active residents of a society)
+UserSchema.index({
+  societyId: 1,
+  isActive: 1,
+  createdAt: -1,
+});
+
+export const User = mongoose.model<UserEntity>("User", UserSchema);
