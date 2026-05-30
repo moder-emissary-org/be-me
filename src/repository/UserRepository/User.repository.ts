@@ -1,5 +1,7 @@
 import { User } from "@/models/User.models.js";
-import type { createUserInput } from "@/services/User/Types/User.types.js";
+import { paginate } from "@/Pagination/Pagination.service.js";
+import type { createUserInput, getUsersBySocietyRepoInput } from "@/services/User/Types/User.types.js";
+import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
 import type { ClientSession, Types } from "mongoose";
 
 interface sessionOptions {
@@ -58,4 +60,14 @@ export const userRepository = {
     const user = await User.create(userData);
     return user;
   },
+
+  findUsersBySocietyId: async ({societyId, cursor}: getUsersBySocietyRepoInput) => {
+    return paginate({
+      model: User,
+      limit: GLOBAL_PAGINATION_LIMIT,
+      query: { societyId },
+      sortOrder: -1,
+      cursor
+    })
+  }
 };
