@@ -7,7 +7,7 @@ export interface UserEntity {
   email: string;
   role: "resident" | "admin" | "guard";
   societyId: Types.ObjectId;
-  apartmentId?: Types.ObjectId;
+  apartmentId?: Types.ObjectId | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -24,3 +24,13 @@ export type createUserInput = Omit<
   UserEntity,
   "_id" | "createdAt" | "updatedAt"
 >;
+
+export type getUsersBySocietyServiceInput = {
+  clerkUserId: string; 
+  cursor?: string | undefined;
+}
+
+export type getUsersBySocietyRepoInput = {
+  societyId: Types.ObjectId; 
+  cursor?: string | undefined;
+}

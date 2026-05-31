@@ -31,13 +31,6 @@ export const createVisitor_Service = async (input: createVisitorInput) => {
             { clerkUserId }
         );
     };
-    if (!actor.user.isActive) {
-        throw new ServiceError(
-            "OPERATION_NOT_ALLOWED",
-            "Not authorized to create visitor, User is not a guard",
-            { clerkUserId }
-        );
-    };
 
     const apartment = await apartmentRepository.findById(apartmentId);
     if (!apartment) {
@@ -144,13 +137,6 @@ export const updateVisitorApprovalStatus_Service = async (
       { clerkUserId },
     );
   }
-  if (!actor.user.isActive) {
-    throw new ServiceError(
-      "OPERATION_NOT_ALLOWED",
-      "Not authorized to update visitor approval status, User is not active",
-      { clerkUserId },
-    );
-  }
 
   const approvedBy = new Types.ObjectId(actor.user.id);
 
@@ -204,13 +190,7 @@ export const getPendingVisitorsForResident_Service = async (
   const { clerkUserId } = input;
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
-  if (!actor.user.isActive) {
-    throw new ServiceError(
-      "USER_INACTIVE",
-      "Inactive user cannot fetch visitors",
-      { clerkUserId },
-    );
-  }
+  
   if (actor.authority.role !== "resident") {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",

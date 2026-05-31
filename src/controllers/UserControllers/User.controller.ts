@@ -3,8 +3,10 @@ import { resolveCurrentUser_Service } from "@/services/User/resolveCurrentUserSe
 import {
   inviteUser_Service,
   assignUserToApartment_Service,
+  getUsersBySociety_Service,
 } from "@/services/User/User.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
+import { parseCursor } from "@/utils/utility.js";
 import { clerkClient, getAuth } from "@clerk/express";
 import type { Types } from "mongoose";
 
@@ -58,19 +60,18 @@ export const assignUserToApartment_Controller = asyncHandler(async (req, res) =>
   res.status(200).json({ success: true });
 });
 
-// Unused
-export const loginUser_Controllers = (req: any, res: any) => {
-  console.log("LoginUser controller is hit");
-  res.status(200).json({ message: "LoginUser endpoint reached" });
-};
+// TODO: implementation of own register and login systems. 
 
-// Unused
-export const getAllUsers_Controllers = asyncHandler(async (req, res) => {
-  const users = await clerkClient.users.getUserList();
-  return res.json({ users });
+export const getUsersBySociety_Controllers = asyncHandler(async (req, res) => {
+  const { clerkUserId } = req.actor!; 
+  const cursor = parseCursor(req.query); 
+
+  const result = await getUsersBySociety_Service({ clerkUserId, cursor });
+
+  return res.json({ data: result });
 });
 
-// Unused
+// Unused - not intend to be implement at MVP level. 
 export const deleteUser_Controllers = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   if (!userId) {
@@ -78,19 +79,4 @@ export const deleteUser_Controllers = asyncHandler(async (req, res) => {
   }
   await clerkClient.users.deleteUser(userId);
   return res.json({ success: true, message: "User deleted successfully" });
-});
-
-// unused
-export const createUser_Controller = asyncHandler(async (req, res) => {
-  console.log("CreateUser controller is hit!");
-  const { userId: ClerkUserId } = getAuth(req);
-  if (!ClerkUserId) {
-    throw new ControllerError(
-      "UNAUTHORIZED",
-      "No ClerkUserId found in the request. User must be authenticated."
-    )
-  }
-  const { email, role, apartmentId } = req.body;
-  console.log("createUser_Controller end with data: ", {});
-  res.status(200).json({ message: "CreateUser endpoint reached" });
 });

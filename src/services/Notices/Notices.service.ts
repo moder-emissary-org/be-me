@@ -23,14 +23,9 @@ export const createNotice_Service = async (input: CreateNoticeServiceInput) => {
     title: rawNoticeTitle,
     content: rawNoticeContent,
   } = input;
+
   const actor = await resolveCurrentUser_Service({ clerkUserId });
-  if (!actor.user.isActive) {
-    throw new ServiceError(
-      "USER_INACTIVE",
-      "Inactive user cannot fetch visitors",
-      { clerkUserId },
-    );
-  }
+
   if (actor.authority.role !== "admin") {
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
@@ -140,14 +135,13 @@ export const getNotices_Service = async (input: getNoticesServicesInput) => {
   const { clerkUserId, cursor: rawCursor } = input;
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
-  if (!actor.user.isActive || actor.authority.role !== "admin") {
-    const errCode = !actor.user.isActive
-      ? "USER_INACTIVE"
-      : "OPERATION_NOT_ALLOWED";
-    const errMessage = !actor.user.isActive
-      ? "Inactive user cannot fetch visitors"
-      : "Only admins can access create notice service.";
-    throw new ServiceError(errCode, errMessage, { clerkUserId });
+
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Only admins can access create notice service.",
+      { clerkUserId }
+    );
   }
 
   const cursor =

@@ -101,15 +101,13 @@ export const getApartmentsBySociety_Service = async (
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
 
-  if (actor.authority.role !== "admin" || !actor.user.isActive) {
-    const errCode = !actor.user.isActive
-      ? "USER_INACTIVE"
-      : "OPERATION_NOT_ALLOWED";
-    const errMessage = !actor.user.isActive
-      ? "Inactive user cannot fetch apartments"
-      : "Only admin is allowed to fetch apartments.";
-    throw new ServiceError(errCode, errMessage, { clerkUserId });
-  }
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "OPERATION_NOT_ALLOWED",
+      "Only admin is allowed to fetch apartments.",
+      { clerkUserId }
+    );
+  };
 
   const cursor =
     typeof rawCursor === "string" && rawCursor.trim() !== ""

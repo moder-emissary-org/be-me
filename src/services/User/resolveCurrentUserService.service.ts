@@ -10,20 +10,29 @@ export const resolveCurrentUser_Service = async ({
 }: {
   clerkUserId: string;
 }) => {
-  const user = await userRepository.findByClerkUserId(clerkUserId);  
-  if (!user || !user.isActive) {
+  const user = await userRepository.findByClerkUserId(clerkUserId); 
+
+  if (!user) {
     throw new ServiceError(
       "USER_NOT_FOUND",
-      "No user found for the given Clerk user ID",
+      "No user found for the given Clerk user ID.",
       { clerkUserId }
-    )
+    );
+  };
+
+  if (!user.isActive) { // <--- here the isActive check is important, check PR #42 to #44
+    throw new ServiceError(
+      "USER_INACTIVE",
+      "The user's account is inactive.",
+      { clerkUserId }
+    );
   }
 
   const society = await FindSociety_repository.findById(user.societyId);
   if (!society) {
     throw new ServiceError(
       "SOCIETY_NOT_FOUND",
-      "No society found for the user's society ID",
+      "User does not belong to a valid society.",
       { societyId: user.societyId }
     )
   }

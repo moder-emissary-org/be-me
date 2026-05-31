@@ -138,15 +138,7 @@ export const updateComplaintStatus_Service = async (
       "Only admins may update complaint lifecycle status",
       { clerkUserId, role: actor.authority.role },
     );
-  }
-
-  if (!actor.user.isActive) {
-    throw new ServiceError(
-      "OPERATION_NOT_ALLOWED",
-      "Inactive admin cannot update complaint status",
-      { clerkUserId },
-    );
-  }
+  };
 
   if (!Types.ObjectId.isValid(rawComplaintId)) {
     throw new ServiceError("SERVICE_INPUT_INVALID", "Invalid complaint ID", {
@@ -272,15 +264,7 @@ export const getComplaints_Service = async (
       "Only admins may access society complaints",
       { clerkUserId, role: actor.authority.role },
     );
-  }
-
-  if (!actor.user.isActive) {
-    throw new ServiceError(
-      "OPERATION_NOT_ALLOWED",
-      "Inactive admin cannot access society complaints",
-      { clerkUserId },
-    );
-  }
+  };
 
   const societyId = actor.scope.society.id;
 
@@ -319,8 +303,8 @@ export const getComplaintsByApartment_Service = async (
   }
 
   const canGetComplaints =
-    (role === "resident" && apartmentScope !== null && actor.user.isActive) ||
-    (role === "admin" && apartmentScope !== null && actor.user.isActive);
+    (role === "resident" && apartmentScope !== null) ||
+    (role === "admin" && apartmentScope !== null);
 
   if (!canGetComplaints) {
     throw new ServiceError(
@@ -334,11 +318,13 @@ export const getComplaintsByApartment_Service = async (
     typeof rawCursor === "string" && rawCursor.trim() !== ""
       ? rawCursor.trim()
       : undefined;
+
   const apartmentId = apartmentScope.id;
 
   const complaints = await complaints_Repository.findComplaintsByApartmentId(
     apartmentId,
     cursor,
   );
+  
   return complaints;
 };
