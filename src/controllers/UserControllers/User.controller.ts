@@ -4,6 +4,7 @@ import {
   inviteUser_Service,
   assignUserToApartment_Service,
   getUsersBySociety_Service,
+  getUserDetails_Service,
 } from "@/services/User/User.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { parseCursor } from "@/utils/utility.js";
@@ -69,6 +70,28 @@ export const getUsersBySociety_Controllers = asyncHandler(async (req, res) => {
   const result = await getUsersBySociety_Service({ clerkUserId, cursor });
 
   return res.json({ data: result });
+});
+
+export const getUserDetails_Controller = asyncHandler(async (req, res) => {
+  const { clerkUserId } = req.actor!;
+
+  const { userId: targetUserId } = req.params;
+  if (!targetUserId) {
+    throw new ControllerError(
+      "BAD_REQUEST",
+      "Incomplete request. userId is required."
+    );
+  }
+
+  const userDetails = await getUserDetails_Service({ targetUserId, requestedBy: clerkUserId });
+  if (!userDetails) {
+    throw new ControllerError(
+      "NOT_FOUND",
+      "User details not found for the authenticated user."
+    );
+  }
+
+  return res.json(userDetails);
 });
 
 // Unused - not intend to be implement at MVP level. 
