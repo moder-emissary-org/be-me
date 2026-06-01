@@ -7,7 +7,7 @@ import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkErr
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
 import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
 import { resolveCurrentUser_Service } from "./resolveCurrentUserService.service.js";
-import type { getUsersBySocietyServiceInput } from "./Types/User.types.js";
+import type { getUserDetailsServiceInput, getUsersBySocietyServiceInput } from "./Types/User.types.js";
 
 
 //---------------------------------------------------------------------//
@@ -349,6 +349,45 @@ export const getUsersBySociety_Service = async (input: getUsersBySocietyServiceI
   const societyId = actor.scope.society.id;
 
   const users = await userRepository.findUsersBySocietyId({ societyId, cursor });
-  
+
   return users;
 };
+
+//---------------------------------------------------------------------//
+//               Get User Details service (admin only)                 //
+//---------------------------------------------------------------------//
+
+export const getUserDetails_Service = async (input: getUserDetailsServiceInput) => {
+  const { targetUserId, requestedBy } = input;
+
+  const actor = await resolveCurrentUser_Service({ clerkUserId: requestedBy });
+
+  if (actor.authority.role !== "admin") {
+    throw new ServiceError(
+      "INSUFFICIENT_PERMISSIONS",
+      "Admin access required",
+      { role: actor.authority.role }
+    );
+  }
+
+  // const targetUserObjectId = new Types.ObjectId(targetUserId);
+
+  const targetUser = await userRepository.findById(targetUserId);
+  if (!targetUser) {
+    throw new ServiceError(
+      "USER_NOT_FOUND",
+      "User not found",
+      { targetUserId }
+    );
+  }
+
+  if (String(targetUser.societyId) !== String(actor.scope.society.id)) {
+    throw new ServiceError(
+      "OPERATION_FAILED",
+      "User possibly doesn't exist or not in your society",
+      { targetUserId, requestedBy }
+    );
+  }
+
+  return targetUser;
+}

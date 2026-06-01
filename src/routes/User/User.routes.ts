@@ -5,6 +5,7 @@ import {
   inviteUser_Controller,
   assignUserToApartment_Controller,
   getUsersBySociety_Controllers,
+  getUserDetails_Controller,
 } from "@/controllers/UserControllers/User.controller.js";
 import { requireAuthActor } from "@/middleware/RequireAuthActor.middleare.js";
 
@@ -25,6 +26,9 @@ router.patch("/:userId/assign-apartment", assignUserToApartment_Controller);
 
 // POST /api/users (admin)
 router.get("/",requireAuthActor, getUsersBySociety_Controllers);
+
+// Query specific user details (admin only)
+router.get("/:userId", requireAuthActor, getUserDetails_Controller); 
 
 // PATCH /api/users/:userId/deactivate (admin)
 // router.patch("/:userId/deactivate", deactivateUserController);

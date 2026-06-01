@@ -34,3 +34,8 @@ export type getUsersBySocietyRepoInput = {
   societyId: Types.ObjectId; 
   cursor?: string | undefined;
 }
+
+export type getUserDetailsServiceInput = {
+  targetUserId: string; 
+  requestedBy: string; // clerkUserId of requester
+}
