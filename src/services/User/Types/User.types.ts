@@ -28,14 +28,24 @@ export type createUserInput = Omit<
 export type getUsersBySocietyServiceInput = {
   clerkUserId: string; 
   cursor?: string | undefined;
+  filters: GetUsersFilters;
 }
+
+export type GetUsersFilters = {
+  role?: "resident" | "guard" | undefined;
+  isActive?: boolean | undefined;
+  apartmentAssigned?: boolean | undefined;
+  search?: string | undefined;
+};
 
 export type getUsersBySocietyRepoInput = {
   societyId: Types.ObjectId; 
   cursor?: string | undefined;
+  filters: GetUsersFilters;
 }
 
 export type getUserDetailsServiceInput = {
   targetUserId: string; 
   requestedBy: string; // clerkUserId of requester
 }
+

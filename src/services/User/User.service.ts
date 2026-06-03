@@ -324,9 +324,12 @@ export const assignUserToApartment_Service = async (
   return { success: true };
 };
 
-// export const getUsersBySociety_Service = async ({clerkUserId}: { clerkUserId: string }) => {
+//---------------------------------------------------------------------//
+//               Get Users by Society service (admin only)             //
+//---------------------------------------------------------------------//
+
 export const getUsersBySociety_Service = async (input: getUsersBySocietyServiceInput) => {
-  const { clerkUserId, cursor: rawCursor } = input;
+  const { clerkUserId, cursor: rawCursor, filters } = input;
 
   const actor = await resolveCurrentUser_Service({ clerkUserId });
 
@@ -348,7 +351,7 @@ export const getUsersBySociety_Service = async (input: getUsersBySocietyServiceI
 
   const societyId = actor.scope.society.id;
 
-  const users = await userRepository.findUsersBySocietyId({ societyId, cursor });
+  const users = await userRepository.findUsersBySocietyId({ societyId, cursor, filters });
 
   return users;
 };
