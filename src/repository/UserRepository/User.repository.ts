@@ -1,8 +1,12 @@
 import { User } from "@/models/User.models.js";
 import { paginate } from "@/Pagination/Pagination.service.js";
-import type { createUserInput, getUsersBySocietyRepoInput } from "@/services/User/Types/User.types.js";
 import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
-import type { ClientSession, Types } from "mongoose";
+import type { 
+  createUserInput, 
+  getUsersBySocietyRepoInput, 
+  UserEntity 
+} from "@/services/User/Types/User.types.js";
+import type { ClientSession, QueryFilter, Types } from "mongoose";
 
 interface sessionOptions {
   session?: ClientSession;
@@ -61,11 +65,44 @@ export const userRepository = {
     return user;
   },
 
-  findUsersBySocietyId: async ({societyId, cursor}: getUsersBySocietyRepoInput) => {
+  findUsersBySocietyId: async ({ societyId, cursor, filters }: getUsersBySocietyRepoInput) => {
+    const query: QueryFilter<UserEntity> = {
+      societyId,
+    };
+
+    if (filters.role) {
+      query.role = filters.role;
+    }
+
+    if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
+    }
+
+    if (filters.apartmentAssigned === true) {
+      query.apartmentId = { $ne: null };
+    }
+
+    if (filters.apartmentAssigned === false) {
+      query.apartmentId = null;
+    }
+
+    if (filters.search) {
+      query.fullName = {
+        $regex: filters.search,
+        $options: "i",
+      },
+      {
+        email: {
+          $regex: filters.search,
+          $options: "i",
+        },
+      };
+    }
+
     return paginate({
       model: User,
       limit: GLOBAL_PAGINATION_LIMIT,
-      query: { societyId },
+      query,
       sortOrder: -1,
       cursor
     })
