@@ -15,7 +15,7 @@ export const ClerkIdentityProvider_Service = {
   ): Promise<{ id: string }> {
     const invitation = await clerkClient.invitations.createInvitation({
       emailAddress: email,
-      redirectUrl: 'http://localhost:3000/'
+      redirectUrl: 'https://public-fe-me.vercel.app/'
     });
     return { id: invitation.id };
   },
