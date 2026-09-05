@@ -227,7 +227,7 @@ export const createUserFromClerkWebhook_Service = async (
   const profile = await getProfile(clerkUserId);
   const fullName = profile.fullName || email;
 
-  await userRepository.createUserThroughSession({
+  await userRepository.createUser({
     clerkUserId,
     email,
     fullName,
