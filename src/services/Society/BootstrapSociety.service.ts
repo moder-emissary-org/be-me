@@ -4,7 +4,7 @@ import { societyRepository_Repository } from "@/repository/SocietyRepository/Soc
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
 import mongoose from "mongoose";
 
-interface BootstrapInput {
+interface BootstrapInput { /** service input assembled by its controller */
   name: string;
   address: string;
   clerkUserId: string;
@@ -18,6 +18,26 @@ interface BootstrapOutput {
 }
 
 export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<BootstrapOutput> => {
+
+  /**
+   * Prevent duplicate local application users before starting
+   * the society bootstrap transaction.
+   *
+   * Mongoose's unique index on `clerkUserId` provides the
+   * database-level duplicate protection, while this service-level
+   * check allows us to return a meaningful business error.
+  */
+  const existingUser =
+    await userRepository.findByClerkUserId(input.clerkUserId);
+
+  if (existingUser) {
+    throw new ServiceError(
+      "USER_ALREADY_REGISTERED",
+      "A local user already exists for this Clerk account.",
+      { clerkUserId: input.clerkUserId }
+    );
+  }
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -40,16 +60,17 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
         address: input.address.trim(),
       },
       { session }
-    ); 
+    );
+
     if (!society) {
       throw new ServiceError(
         'SOCIETY_CREATION_FAILED',
         'Failed to create society during bootstrap.',
-        { input}
+        { input }
       );
     }
 
-    const adminUser = await userRepository.createUserThroughSession(
+    const adminUser = await userRepository.createUser(
       {
         clerkUserId: input.clerkUserId,
         role: "admin",
