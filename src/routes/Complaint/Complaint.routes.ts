@@ -20,7 +20,7 @@ router.get("/by-apartment", getComplaintsByApartment_Controllers);
 
 // admin
 router.patch("/:complaintId/status", updateComplaintStatus_Controllers);
-router.get("/get", getComplaints_Controllers); 
-router.delete("/:id/delete", deleteComplaint_Controllers); 
+router.get("/", getComplaints_Controllers); 
+router.delete("/:id/delete", deleteComplaint_Controllers);
 
-export {router as complaintRouter}
+export {router as complaintRouter};

@@ -17,7 +17,7 @@ router.get("/test", (req, res) => {
 router.use(clerkMiddleware());
 
 // Admin Scoped Routes
-router.get("/visitors", getVisitors_Controllers);
+router.get("/", getVisitors_Controllers);
 
 // Guard Scoped Routes
 router.post("/create", createVisitor_Controllers);

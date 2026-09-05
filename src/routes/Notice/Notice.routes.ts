@@ -15,7 +15,7 @@ router.post("/create", createNotice_Controllers);
 router.patch("/update", updateNotice_Controllers); 
 
 // test of custom middleware.
-router.get("/get",requireAuthActor, getNotices_Controllers); 
+router.get("/",requireAuthActor, getNotices_Controllers); 
 router.delete("/delete", deleteNotice_Controllers); 
 
 export {router as noticeRouter}
