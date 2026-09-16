@@ -32,8 +32,8 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
 
   if (existingUser) {
     throw new ServiceError(
-      "USER_ALREADY_REGISTERED",
-      "A local user already exists for this Clerk account.",
+      "USER_ALREADY_PROVISIONED",
+      "A local user already provisioned for this Clerk account.",
       { clerkUserId: input.clerkUserId }
     );
   }
@@ -130,7 +130,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
 
     if (PersistenceErrorInspector.isDuplicateClerkUserIdError(error)) {
       throw new ServiceError(
-        "USER_ALREADY_REGISTERED",
+        "USER_ALREADY_PROVISIONED",
         "A local user already exists for this Clerk account."
       );
     }
