@@ -1,0 +1,12 @@
+export const REPOSITORY_ERROR_STATUS = {
+  DB_CONNECTION_FAILED: 500,
+  DB_WRITE_FAILED: 500,
+  DB_READ_FAILED: 500,
+  DB_DUPLICATE_KEY: 409,
+  NOT_FOUND: 404,
+  VALIDATION_ERROR: 400,
+  DB_TIMEOUT: 500,
+} as const;
+
+export type RepositoryErrorCode =
+  keyof typeof REPOSITORY_ERROR_STATUS;
