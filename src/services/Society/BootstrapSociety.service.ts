@@ -1,10 +1,10 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
-import { SystemError } from "@/error/SystemError/System.Error.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { societyRepository_Repository } from "@/repository/SocietyRepository/Society.repository.js";
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
+import PersistenceErrorInspector from "@/utils/mongoose-error/MongoErrors.utils.js";
 import mongoose from "mongoose";
 
-interface BootstrapInput {
+interface BootstrapInput { /** service input assembled by its controller */
   name: string;
   address: string;
   clerkUserId: string;
@@ -18,6 +18,26 @@ interface BootstrapOutput {
 }
 
 export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<BootstrapOutput> => {
+
+  /**
+   * Prevent duplicate local application users before starting
+   * the society bootstrap transaction.
+   *
+   * Mongoose's unique index on `clerkUserId` provides the
+   * database-level duplicate protection, while this service-level
+   * check allows us to return a meaningful business error.
+  */
+  const existingUser =
+    await userRepository.findByClerkUserId(input.clerkUserId);
+
+  if (existingUser) {
+    throw new ServiceError(
+      "USER_ALREADY_PROVISIONED",
+      "A local user already provisioned for this Clerk account.",
+      { clerkUserId: input.clerkUserId }
+    );
+  }
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -25,7 +45,7 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
     /*
     const existingSocietyCount = await societyRepository_Repository.count({ session });
 
-    if (existingSocietyCount > 0) {
+    if (existingSocietyCount > 50) {
       throw new ServiceError(
         "SOCIETY_ALREADY_BOOTSTRAPPED",
         "A society has already been bootstrapped. Multiple societies are not allowed.",
@@ -40,16 +60,17 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
         address: input.address.trim(),
       },
       { session }
-    ); 
+    );
+
     if (!society) {
       throw new ServiceError(
         'SOCIETY_CREATION_FAILED',
         'Failed to create society during bootstrap.',
-        { input}
+        { input }
       );
     }
 
-    const adminUser = await userRepository.createUserThroughSession(
+    const adminUser = await userRepository.createUser(
       {
         clerkUserId: input.clerkUserId,
         role: "admin",
@@ -61,8 +82,13 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       },
       { session }
     );
+
+    /** 
+     * just keeping in extra, 
+     * btw the repo err catches in advance, below (by PersistenceErrorInspector)  
+    */
     if (!adminUser) {
-      throw new SystemError(
+      throw new ServiceError(
         'ADMIN_USER_CREATION_FAILED',
         'Failed to create admin user during bootstrap.',
         { input }
@@ -76,9 +102,43 @@ export const bootstrapSociety_Service = async (input: BootstrapInput): Promise<B
       adminUserId: adminUser._id.toString(),
     };
   } catch (error) {
+    /**
+     * ============== server err logs ===============
+    */
+    /** 
+    console.log("========== BOOTSTRAP CATCH ==========");
+    console.log("error:", error);
+    console.log("constructor:", error?.constructor?.name);
+    console.log("instanceof MongoServerError:",
+      error instanceof mongoose.mongo.MongoServerError
+    );
+    console.log("code:", (error as any)?.code);
+    console.log("keyPattern:", (error as any)?.keyPattern);
+    console.log("keyValue:", (error as any)?.keyValue);
+    console.log("name:", (error as any)?.name);
+    console.log("====================================");
+    */
+
     await session.abortTransaction();
+
+    if (PersistenceErrorInspector.isDuplicateEmailError(error)) {
+      throw new ServiceError(
+        "USER_ALREADY_REGISTERED",
+        "An account with this email already exists."
+      );
+    }
+
+    if (PersistenceErrorInspector.isDuplicateClerkUserIdError(error)) {
+      throw new ServiceError(
+        "USER_ALREADY_PROVISIONED",
+        "A local user already exists for this Clerk account."
+      );
+    }
+
     throw error;
   } finally {
+
     session.endSession();
+    
   }
 }

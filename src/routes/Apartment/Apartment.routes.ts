@@ -16,7 +16,7 @@ router.use(clerkMiddleware());
 router.post("/create", CreateApartment_Controllers);
 router.post("/bulk-create", CreateApartment_Controllers);
 router.patch("/update", UpdateApartment_Controllers);
-router.get("/get",requireAuthActor, getApartments_Controllers);
+router.get("/",requireAuthActor, getApartments_Controllers);
 router.get("/delete", DeleteApartment_Controllers);
 
 export { router as apartmentRouter };

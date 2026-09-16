@@ -1,7 +1,8 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
 import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
+import type { CurrentUserResolution } from "./Types/User.types.js";
 
 // This service is responsible for resolving the current user's details, including their associated society and apartment information, based on their Clerk user ID. It is used in the GetCurrentUser controller to provide a comprehensive user profile for the frontend application.
 
@@ -9,12 +10,18 @@ export const resolveCurrentUser_Service = async ({
   clerkUserId,
 }: {
   clerkUserId: string;
-}) => {
-  const user = await userRepository.findByClerkUserId(clerkUserId); 
+}) : Promise<CurrentUserResolution> => {
+  /**
+   * For More Context: see reports in 
+   *    /be-me-docs/Readme/Society-Onboarding-Model & 
+   *    14-sep-26 papers &
+   *    profile/ASMS-Admin-dashboar-web-app-DOCS/society-onboarding-model or _ 
+   */
+  const user = await userRepository.findByClerkUserId(clerkUserId);
 
   if (!user) {
     throw new ServiceError(
-      "USER_NOT_FOUND",
+      "USER_NOT_PROVISIONED",
       "No user found for the given Clerk user ID.",
       { clerkUserId }
     );
@@ -64,7 +71,7 @@ export const resolveCurrentUser_Service = async ({
         : null,
     },
     meta: {
-      onboardingComplete: true,  
+      onboardingComplete: true,
     },
   };
 }

@@ -1,4 +1,4 @@
-import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ControllerError } from "@/error/definitions/ControllerErrors/MainCatcher/ControllerError.js";
 import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
 import { bootstrapSociety_Service } from "@/services/Society/BootstrapSociety.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
@@ -14,6 +14,7 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
     )
   }
 
+  // TODO: need fix/look and improvement in profile extraction/managements
   const profile =
     await ClerkIdentityProvider_Service.getProfile(clerkUserId);
 
@@ -35,6 +36,7 @@ export const societyBootstrap_Controllers = asyncHandler(async (req, res) => {
     email,
     fullName,
   });
+
   if (!society) {
     throw new ControllerError(
       "FORBIDDEN",

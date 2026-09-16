@@ -1,10 +1,10 @@
 import { User } from "@/models/User.models.js";
 import { paginate } from "@/Pagination/Pagination.service.js";
 import { GLOBAL_PAGINATION_LIMIT } from "@/utils/utility.js";
-import type { 
-  createUserInput, 
-  getUsersBySocietyRepoInput, 
-  UserEntity 
+import type {
+  createUserInput,
+  getUsersBySocietyRepoInput,
+  UserEntity
 } from "@/services/User/Types/User.types.js";
 import type { ClientSession, QueryFilter, Types } from "mongoose";
 
@@ -13,7 +13,7 @@ interface sessionOptions {
 }
 
 export const userRepository = {
-  createUserThroughSession: async (
+  createUser: async (
     data: {
       clerkUserId: string;
       role: "admin" | "resident" | "guard";

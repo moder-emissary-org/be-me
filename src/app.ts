@@ -8,6 +8,7 @@ import { VisitorRouter } from "./routes/Visitor/visitor.routes.js";
 import { complaintRouter } from "./routes/Complaint/Complaint.routes.js";
 import { noticeRouter } from "./routes/Notice/Notice.routes.js";
 import { clerkWebhookRouter } from "@/routes/Webhooks/ClerkWebhook.routes.js";
+import { serverErrorResolver } from "./error/middleware/ErrorResolvers/serverErrorResolver.js";
 
 const app: express.Application = express();
 
@@ -40,5 +41,8 @@ app.use("/api/v1/apartments", apartmentRouter);
 app.use("/api/v1/visitors", VisitorRouter);
 app.use("/api/v1/complaints", complaintRouter);
 app.use("/api/v1/notices", noticeRouter);
+
+// Error boundary — LAST
+app.use(serverErrorResolver);
 
 export { app };

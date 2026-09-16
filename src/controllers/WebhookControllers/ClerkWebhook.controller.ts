@@ -4,20 +4,25 @@ import { createUserFromClerkWebhook_Service } from "@/services/User/User.service
 
 export const clerkWebhook_Controller = asyncHandler(async (req, res) => {
   const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+
   if (!CLERK_WEBHOOK_SECRET) {
     return res.status(500).json({ error: "Webhook secret not configured" });
   }
 
   const body = req.body as Buffer;
+
   const svixId = req.headers["svix-id"] as string | undefined;
   const svixTimestamp = req.headers["svix-timestamp"] as string | undefined;
   const svixSignature = req.headers["svix-signature"] as string | undefined;
+
   if (!body || !svixId || !svixTimestamp || !svixSignature) {
     return res.status(400).json({ error: "Missing webhook headers or body" });
   }
 
   const wh = new Webhook(CLERK_WEBHOOK_SECRET);
+
   let evt: { type: string; data: Record<string, unknown> };
+
   try {
     evt = wh.verify(body, {
       "svix-id": svixId,
@@ -38,6 +43,7 @@ export const clerkWebhook_Controller = asyncHandler(async (req, res) => {
   };
 
   const clerkUserId = data.id;
+  
   const email = (data.email_addresses as Array<{ email_address?: string }> | undefined)?.[0]?.email_address;
 
   if (!clerkUserId || !email) {

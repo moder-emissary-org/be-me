@@ -26,7 +26,7 @@ export type createUserInput = Omit<
 >;
 
 export type getUsersBySocietyServiceInput = {
-  clerkUserId: string; 
+  clerkUserId: string;
   cursor?: string | undefined;
   filters: GetUsersFilters;
 }
@@ -39,13 +39,42 @@ export type GetUsersFilters = {
 };
 
 export type getUsersBySocietyRepoInput = {
-  societyId: Types.ObjectId; 
+  societyId: Types.ObjectId;
   cursor?: string | undefined;
   filters: GetUsersFilters;
 }
 
 export type getUserDetailsServiceInput = {
-  targetUserId: string; 
+  targetUserId: string;
   requestedBy: string; // clerkUserId of requester
 }
 
+/**
+ * ResolveCurrentUserService Type supports
+ */
+export type CurrentUser = {
+  user: {
+    id: string;
+    clerkUserId: string;
+    fullName: string | null;
+    isActive: boolean;
+  };
+  authority: {
+    role: "resident" | "admin" | "guard";
+  };
+  scope: {
+    society: {
+      id: Types.ObjectId;
+      name: string;
+    };
+    apartment: {
+      id: Types.ObjectId;
+      code: string;
+    } | null;
+  };
+  meta: {
+    onboardingComplete: boolean;
+  };
+};
+
+export type CurrentUserResolution = CurrentUser;

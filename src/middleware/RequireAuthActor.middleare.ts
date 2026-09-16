@@ -1,4 +1,4 @@
-import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ControllerError } from "@/error/definitions/ControllerErrors/MainCatcher/ControllerError.js";
 import { getAuth } from "@clerk/express";
 import type { NextFunction, Request, Response } from "express";
 

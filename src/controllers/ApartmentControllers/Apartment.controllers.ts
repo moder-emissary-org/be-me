@@ -1,4 +1,4 @@
-import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ControllerError } from "@/error/definitions/ControllerErrors/MainCatcher/ControllerError.js";
 import { createApartment_Service, getApartmentsBySociety_Service } from "@/services/Apartment/Apartment.services.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";
