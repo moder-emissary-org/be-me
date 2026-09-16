@@ -1,4 +1,4 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { clerkClient } from "@clerk/express";
 
 export interface ClerkProfile {

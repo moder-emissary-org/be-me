@@ -58,7 +58,6 @@ export function serverErrorResolver(
     return;
   }
 
-  console.log("err: ", err);
   /** catches custom errors if not found instance of AppError */
   res.status(500).json({
     success: false,

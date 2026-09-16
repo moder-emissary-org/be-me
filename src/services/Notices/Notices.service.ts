@@ -1,4 +1,4 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { resolveCurrentUser_Service } from "../User/resolveCurrentUserService.service.js";
 import type {
   CreateNoticeServiceInput,

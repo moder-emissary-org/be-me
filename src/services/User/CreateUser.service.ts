@@ -1,6 +1,6 @@
 import type { Types } from "mongoose"
 import { resolveCurrentUser_Service } from "./resolveCurrentUserService.service.js"
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 
 interface createUserInput {
   email: string,

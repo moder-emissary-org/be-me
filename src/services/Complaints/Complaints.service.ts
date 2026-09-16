@@ -10,7 +10,7 @@ import {
   parseAdminSettableStatus,
 } from "./policies/complaintStatus.policy.js";
 import type { UpdateComplaintStatusInput, UpdateComplaintStatusRepositoryInput } from "./Types/Complaints.types.js";
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import {
   complaints_Repository
 } from "@/repository/ComplaintsRepository/Complaints.repository.js";

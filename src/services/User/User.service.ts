@@ -1,9 +1,9 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { FindSociety_repository } from "@/repository/SocietyRepository/FindSociety.repository.js";
 import { ClerkIdentityProvider_Service } from "@/services/Identity/IdentityProvider.service.js";
 import mongoose, { Types } from "mongoose";
 import { InvitationRepository } from "@/repository/InvitationRepository/Invitation.Repository.js";
-import { mapClerkInvitationError } from "@/error/ClerkError/MainCatcher/ClerkError.js";
+import { mapClerkInvitationError } from "@/error/definitions/ClerkError/MainCatcher/ClerkError.js";
 import { userRepository } from "@/repository/UserRepository/User.repository.js";
 import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
 import { resolveCurrentUser_Service } from "./resolveCurrentUserService.service.js";

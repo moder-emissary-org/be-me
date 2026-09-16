@@ -1,4 +1,4 @@
-import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ControllerError } from "@/error/definitions/ControllerErrors/MainCatcher/ControllerError.js";
 import { createNotice_Service, getNotices_Service } from "@/services/Notices/Notices.service.js";
 import { asyncHandler } from "@/utils/asyncHandler.js";
 import { getAuth } from "@clerk/express";

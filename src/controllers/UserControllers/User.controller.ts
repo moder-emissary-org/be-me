@@ -1,4 +1,4 @@
-import { ControllerError } from "@/error/ControllerErrors/MainCatcher/ControllerError.js";
+import { ControllerError } from "@/error/definitions/ControllerErrors/MainCatcher/ControllerError.js";
 import { resolveCurrentUser_Service } from "@/services/User/resolveCurrentUserService.service.js";
 import type { GetUsersFilters } from "@/services/User/Types/User.types.js";
 import {
@@ -16,9 +16,10 @@ export const getCurrentUser_Controllers = asyncHandler(async (req, res) => {
   const { userId: clerkUserId } = getAuth(req);
 
   if (!clerkUserId) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: No userId in session" });
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "No Clerk user ID in request. User must be authenticated."
+    );
   }
 
   const me = await resolveCurrentUser_Service({ clerkUserId });
@@ -139,3 +140,23 @@ export const deleteUser_Controllers = asyncHandler(async (req, res) => {
   await clerkClient.users.deleteUser(userId);
   return res.json({ success: true, message: "User deleted successfully" });
 });
+
+/*
+export const ensureCurrentUser_Controller = asyncHandler(async (req, res) => {
+  const { userId: clerkUserId } = getAuth(req);
+
+  if (!clerkUserId) {
+    throw new ControllerError(
+      "UNAUTHORIZED",
+      "No Clerk user ID in request. User must be authenticated."
+    );
+  }
+
+  await ensureCurrentUser_Service({ clerkUserId });
+
+  return res.status(200).json({
+    message: "Current user ensured successfully",
+    data: { success: true }
+  });
+});
+*/
