@@ -1,6 +1,6 @@
-import { ServiceError } from "@/error/ServicesErrors/MainCatcher/ServiceError.js";
+import { ServiceError } from "@/error/definitions/ServicesErrors/MainCatcher/ServiceError.js";
 import { apartmentRepository } from "@/repository/ApartmentRepository/Apartment.repository.js";
-import { isMongoDuplicateError } from "@/utils/MongoErrors.utils.js";
+import PersistenceErrorInspector from "@/utils/mongoose-error/MongoErrors.utils.js";
 import type {
   CreateApartmentInput,
   CreateApartmentOutput,
@@ -19,7 +19,6 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
     throw new ServiceError(
       "OPERATION_NOT_ALLOWED",
       "No user found with the provided Clerk user ID.",
-      { statusCode: 404 }
     )
   }
 
@@ -27,7 +26,6 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
     throw new ServiceError(
       "ROLE_CONSTRAINT_VIOLATION",
       "User does not have admin privileges.",
-      { statusCode: 403 }
     );
   }
 
@@ -43,7 +41,6 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
       "DUPLICATE_APARTMENT_FOUND",
       "An apartment with the same code already exists in this society.",
       {
-        statusCode: 409,
         societyId: adminSocietyId,
         apartmentCode: input.apartmentCode,
       },
@@ -65,18 +62,16 @@ export const createApartment_Service = async (input: CreateApartmentInput): Prom
       createdAt: apartment.createdAt,
     };
   } catch (error: any) {
-    if (isMongoDuplicateError(error)) {
-      throw new ServiceError(
-        "DUPLICATE_APARTMENT_FOUND",
-        `Apartment '${normalizedApartmentCode}' already exists in this society.`,
-        { statusCode: 409 },
-      );
-    }
+    if (PersistenceErrorInspector.isDuplicateEmailError(error)) {
+        throw new ServiceError(
+          "USER_ALREADY_REGISTERED",
+          "An account with this email already exists."
+        );
+      }
 
     throw new ServiceError(
       "OPERATION_FAILED",
       "Unexpected error while creating apartment.",
-      { statusCode: 500 },
     );
   }
 };
