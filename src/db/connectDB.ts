@@ -2,11 +2,8 @@ import mongoose from "mongoose";
 import { DB_NAME } from "../constants.js";
 
 /**
- * -> Establishes a connection to the MongoDB database using Mongoose.
- * -> This function retrieves the MongoDB URI from environment variables 
- * and attempts to connect to the specified database.
- * -> If the connection fails due to a missing URI or connection error, it logs an error
- * message and exits the process.
+ * -> connectDB
+ * DB connection is allowed from this func only, 
  */
 
 export const connectDB = async (): Promise<void> => {
@@ -22,7 +19,6 @@ export const connectDB = async (): Promise<void> => {
     console.info("db.connected", {
       provider: "mongodb",
       host: connectionInstance.connection.host,
-      db: DB_NAME,
     });
 
   } catch (error: unknown) {
