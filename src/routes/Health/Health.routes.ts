@@ -1,24 +1,9 @@
+import { getSystemHealth } from "@/controllers/HealthControllers/SystemHealth.controllers.js";
 import { Router } from "express";
-import mongoose from "mongoose";
 
 const router: Router = Router();
 
-router.get("/", (_req, res) => {
-  const isDbConnected = mongoose.connection.readyState === 1;
-
-  if (!isDbConnected) {
-    return res.status(503).json({
-      status: "unhealthy",
-      db: "disconnected",
-    });
-  }
-
-  return res.status(200).json({
-    status: "ok",
-    db: "connected",
-    uptime: process.uptime(),
-  });
-});
+router.get("/", getSystemHealth);
 
 export { router as healthRouter };
 

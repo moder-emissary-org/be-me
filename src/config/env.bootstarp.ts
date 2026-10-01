@@ -7,10 +7,9 @@ let injected = false;
 export const bootstrapEnv = (): void => {
   if (injected) return;
 
-  const isProd = process.env.NODE_ENV !== "production";
   const envPath = path.resolve(process.cwd(), ".env");
 
-  if (!isProd) {
+  if (process.env.NODE_ENV !== "production") {
     if (!fs.existsSync(envPath)) {
       throw new Error(".env file is missing in non-production environment");
     }
