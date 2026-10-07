@@ -26,7 +26,9 @@ app.use(
       console.log(
         `${new Date().toISOString()} [CORS] origin=${origin ?? "none"} -> ${isAllowed ? "ALLOWED" : "BLOCKED"}`,
       );
-      callback(null, !origin || allowedOrigins.has(origin))
+
+      // Requests without an Origin header are not browser cross-origin requests.
+      callback(null, !origin || allowedOrigins.has(origin));
     },
     credentials: true,
   })
