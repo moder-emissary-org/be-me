@@ -72,6 +72,7 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.test
+.env.local
 .env.production
 
 # docker Environment variable file
@@ -88,6 +89,9 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+
+# ds_store files
+.DS_Store
 
 # Gatsby files
 .cache/

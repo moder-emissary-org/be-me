@@ -22,6 +22,11 @@ const allowedOrigins = new Set(
 app.use(
   cors({
     origin(origin, callback) {
+      const isAllowed = !origin || allowedOrigins.has(origin);
+      console.log(
+        `${new Date().toISOString()} [CORS] origin=${origin ?? "none"} -> ${isAllowed ? "ALLOWED" : "BLOCKED"}`,
+      );
+
       // Requests without an Origin header are not browser cross-origin requests.
       callback(null, !origin || allowedOrigins.has(origin));
     },

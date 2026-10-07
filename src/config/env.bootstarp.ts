@@ -7,7 +7,7 @@ let injected = false;
 export const bootstrapEnv = (): void => {
   if (injected) return;
 
-  const envPath = path.resolve(process.cwd(), ".env");
+  const envPath = path.resolve(process.cwd(), ".env.local");
 
   if (process.env.NODE_ENV !== "production") {
     if (!fs.existsSync(envPath)) {

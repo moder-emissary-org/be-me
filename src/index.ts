@@ -1,8 +1,9 @@
-import { connectDB } from './db/connectDB.js';
-import { app } from './app.js';
 import { bootstrapEnv } from './config/env.bootstarp.js';
 
 bootstrapEnv();
+
+import { connectDB } from './db/connectDB.js';
+const {app} = await import('./app.js');
 
 const PORT: number = process.env.PORT
   ? Number(process.env.PORT)
