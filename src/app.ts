@@ -12,9 +12,19 @@ import { serverErrorResolver } from "./error/middleware/ErrorResolvers/serverErr
 
 const app: express.Application = express();
 
+const allowedOrigins = new Set(
+  (process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin(origin, callback) {
+      // Requests without an Origin header are not browser cross-origin requests.
+      callback(null, !origin || allowedOrigins.has(origin));
+    },
     credentials: true,
   })
 );
